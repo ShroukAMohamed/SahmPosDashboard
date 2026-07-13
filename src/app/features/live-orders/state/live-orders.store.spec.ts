@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { LiveOrdersStore } from './live-orders.store';
 import { LiveOrdersService } from '../services/live-orders.service';
 import { NetworkService } from '../../../core/services/network.service';
@@ -16,7 +16,8 @@ describe('LiveOrdersStore', () => {
   beforeEach(() => {
     mockLiveOrdersService = {
       getLiveOrders: jasmine.createSpy('getLiveOrders').and.returnValue(of({ success: true, data: [] })),
-      updateOrderStatus: jasmine.createSpy('updateOrderStatus').and.returnValue(of({ success: true }))
+      updateOrderStatus: jasmine.createSpy('updateOrderStatus').and.returnValue(of({ success: true })),
+      createOrder: jasmine.createSpy('createOrder').and.returnValue(of({ success: true, data: {} }))
     };
 
     mockNetworkService = {
@@ -49,11 +50,12 @@ describe('LiveOrdersStore', () => {
     expect(store).toBeTruthy();
   });
 
-  it('should load orders', () => {
+  it('should load orders', fakeAsync(() => {
     store.loadOrders();
+    tick();
     expect(mockLiveOrdersService.getLiveOrders).toHaveBeenCalled();
     expect(store.isLoading()).toBeFalse();
-  });
+  }));
 
   it('should add order and log activity', () => {
     const order: any = { id: '1', orderNumber: '123' };

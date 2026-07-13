@@ -16,4 +16,8 @@ export class LiveOrdersService {
   updateOrderStatus(update: OrderStatusUpdate): Observable<ApiResponse<Order>> {
     return this.mockApi.updateOrderStatus(update);
   }
+
+  createOrder(order: Order): Observable<ApiResponse<Order>> {
+    return this.mockApi.createOrder(order);
+  }
 }

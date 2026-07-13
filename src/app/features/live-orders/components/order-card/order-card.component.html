@@ -36,10 +36,19 @@
     </div>
   </div>
 
-  <div class="text-sm text-text-muted flex items-center justify-between"
-    [ngClass]="order().status === 'DELIVERED' ? 'mb-2' : 'mb-3'">
-    <span class="truncate pr-2">{{ order().customerName }}</span>
-    <span class="shrink-0 bg-border-dark px-1.5 py-0.5 rounded text-xs">
+  <div class="flex items-center justify-between" [ngClass]="order().status === 'DELIVERED' ? 'mb-2' : 'mb-3'">
+    <div class="flex flex-col gap-1 min-w-0 pr-2">
+      <span class="text-sm text-text-muted truncate">{{ order().customerName }}</span>
+      <div class="flex items-center gap-1 text-[10px] text-text-muted uppercase font-semibold">
+        @switch (order().channel) {
+          @case ('WALK_IN') { <span class="material-symbols-outlined text-[12px]">storefront</span> }
+          @case ('DELIVERY') { <span class="material-symbols-outlined text-[12px]">two_wheeler</span> }
+          @case ('ONLINE') { <span class="material-symbols-outlined text-[12px]">language</span> }
+        }
+        <span class="truncate">{{ order().channel.replace('_', ' ') }}</span>
+      </div>
+    </div>
+    <span class="shrink-0 bg-border-dark text-text-muted px-1.5 py-0.5 rounded text-xs self-start mt-0.5">
       {{ order().items.length }} {{ order().items.length === 1 ? 'Item' : 'Items' }}
     </span>
   </div>

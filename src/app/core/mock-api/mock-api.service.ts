@@ -14,7 +14,7 @@ export class MockApiService {
     {
       id: 'prod-1',
       name: 'Classic Double Combo',
-      description: 'Burger, Fries, Drink',
+      description: 'Double beef, Fries, Drink',
       price: 14.99,
       category: ProductCategory.COMBO,
       available: true,
@@ -37,7 +37,7 @@ export class MockApiService {
       price: 15.99,
       category: ProductCategory.COMBO,
       available: true,
-      imageUrl: '' // will fallback to icon
+      imageUrl: 'https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=600&auto=format&fit=crop'
     },
     {
       id: 'prod-4',
@@ -54,7 +54,8 @@ export class MockApiService {
       description: 'Truffle mayo, mushrooms, swiss cheese',
       price: 12.50,
       category: ProductCategory.BURGER,
-      available: true
+      available: true,
+      imageUrl: 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?q=80&w=600&auto=format&fit=crop'
     },
     {
       id: 'prod-6',
@@ -62,7 +63,8 @@ export class MockApiService {
       description: 'Seasoned curly fries',
       price: 4.50,
       category: ProductCategory.SIDE,
-      available: true
+      available: true,
+      imageUrl: 'https://images.unsplash.com/photo-1518013431117-eb1465fa5752?q=80&w=600&auto=format&fit=crop'
     },
     {
       id: 'prod-7',
@@ -79,16 +81,86 @@ export class MockApiService {
       description: 'Vanilla, Chocolate, or Strawberry',
       price: 5.00,
       category: ProductCategory.BEVERAGE,
-      available: true
+      available: true,
+    },
+    {
+      id: 'prod-9',
+      name: 'BBQ Bacon Burger',
+      description: 'Bacon, cheddar, crispy onions, BBQ sauce',
+      price: 11.99,
+      category: ProductCategory.BURGER,
+      available: true,
+    },
+    {
+      id: 'prod-10',
+      name: 'Onion Rings',
+      description: 'Crispy battered onion rings with ranch',
+      price: 5.50,
+      category: ProductCategory.SIDE,
+      available: true,
+      imageUrl: 'https://images.unsplash.com/photo-1639024471283-03518883512d?q=80&w=600&auto=format&fit=crop'
+    },
+    {
+      id: 'prod-11',
+      name: 'Sweet Potato Fries',
+      description: 'Served with marshmallow dip',
+      price: 5.00,
+      category: ProductCategory.SIDE,
+      available: true,
+    },
+    {
+      id: 'prod-12',
+      name: 'Iced Lemon Tea',
+      description: 'Freshly brewed black tea with lemon',
+      price: 3.50,
+      category: ProductCategory.BEVERAGE,
+      available: true,
+      imageUrl: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?q=80&w=600&auto=format&fit=crop'
+    },
+    {
+      id: 'prod-13',
+      name: 'Craft Cola',
+      description: 'Artisanal cane sugar cola',
+      price: 3.00,
+      category: ProductCategory.BEVERAGE,
+      available: true,
+      imageUrl: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=600&auto=format&fit=crop'
+    },
+    {
+      id: 'prod-14',
+      name: 'Chocolate Lava Cake',
+      description: 'Warm chocolate cake with molten center',
+      price: 6.99,
+      category: ProductCategory.DESSERT,
+      available: true,
+      imageUrl: 'https://images.unsplash.com/photo-1624353365286-3f8d62daad51?q=80&w=600&auto=format&fit=crop'
+    },
+    {
+      id: 'prod-15',
+      name: 'Vanilla Sundae',
+      description: 'Soft serve with fudge and sprinkles',
+      price: 4.50,
+      category: ProductCategory.DESSERT,
+      available: true,
+    },
+    {
+      id: 'prod-16',
+      name: 'Spicy Jalapeño Burger',
+      description: 'Pepper jack, fresh jalapeños, chipotle mayo',
+      price: 12.00,
+      category: ProductCategory.BURGER,
+      available: true,
+      isSpicy: true,
+      imageUrl: 'https://images.unsplash.com/photo-1553979459-d2229ba7433b?q=80&w=600&auto=format&fit=crop'
     }
   ];
 
   private categories: Category[] = [
     { id: ProductCategory.COMBO, name: 'Combos', count: 4 },
-    { id: ProductCategory.BURGER, name: 'Burgers', count: 2 },
-    { id: ProductCategory.SIDE, name: 'Sides', count: 1 },
-    { id: ProductCategory.BEVERAGE, name: 'Beverages', count: 1 },
-    { id: ProductCategory.DESSERT, name: 'Desserts', count: 0 }
+    { id: ProductCategory.BURGER, name: 'Burgers', count: 4 },
+    { id: ProductCategory.SIDE, name: 'Sides', count: 3 },
+    { id: ProductCategory.BEVERAGE, name: 'Beverages', count: 3 },
+    { id: ProductCategory.DESSERT, name: 'Desserts', count: 2 }
   ];
 
   private orders: Order[] = [
@@ -146,28 +218,54 @@ export class MockApiService {
     }).pipe(delay(600));
   }
 
+  healthCheck(): Observable<boolean> {
+    // Simulates a backend health endpoint
+    return of(true).pipe(delay(200));
+  }
+
   // --- Orders API ---
+  private loadOrdersFromStorage(): Order[] {
+    const stored = sessionStorage.getItem('sahm_mock_orders');
+    if (stored) {
+      return JSON.parse(stored);
+    }
+    return [...this.orders];
+  }
+
+  private saveOrdersToStorage(orders: Order[]) {
+    sessionStorage.setItem('sahm_mock_orders', JSON.stringify(orders));
+  }
+
   getOrders(): Observable<ApiResponse<Order[]>> {
+    const currentOrders = this.loadOrdersFromStorage();
     return of({
       success: true,
-      data: [...this.orders],
-      meta: { totalItems: this.orders.length }
+      data: currentOrders,
+      meta: { totalItems: currentOrders.length }
     }).pipe(delay(800));
   }
 
   createOrder(order: Order): Observable<ApiResponse<Order>> {
-    // Simulate server-side ID generation and persistence
+    const currentOrders = this.loadOrdersFromStorage();
+
+    // Check if it already exists (duplicate prevention on server side simulation)
+    const existing = currentOrders.find(o => o.id === order.id);
+    if (existing) {
+      return of({ success: true, data: existing }).pipe(delay(1000));
+    }
+
+    // Simulate server-side persistence while keeping the passed temporary client-side ID
+    // so the client can map it successfully, or generate a new one if client didn't provide.
     const newOrder = {
       ...order,
-      id: `ord-${Date.now()}`,
-      placedAt: new Date().toISOString()
+      id: order.id || `ord-${Date.now()}`,
+      placedAt: order.placedAt || new Date().toISOString()
     };
-    
-    // Push to mock DB
-    this.orders = [newOrder, ...this.orders];
-    
-    // Simulate rare API failure randomly for robust testing? 
-    // We'll just succeed to keep the flow smooth, unless you want intentional errors.
+
+    const newOrdersList = [newOrder, ...currentOrders];
+    this.orders = newOrdersList;
+    this.saveOrdersToStorage(newOrdersList);
+
     return of({
       success: true,
       data: newOrder
@@ -175,12 +273,16 @@ export class MockApiService {
   }
 
   updateOrderStatus(update: OrderStatusUpdate): Observable<ApiResponse<Order>> {
-    const idx = this.orders.findIndex(o => o.id === update.orderId);
+    const currentOrders = this.loadOrdersFromStorage();
+    const idx = currentOrders.findIndex(o => o.id === update.orderId);
+
     if (idx !== -1) {
-      this.orders[idx] = { ...this.orders[idx], status: update.newStatus };
+      currentOrders[idx] = { ...currentOrders[idx], status: update.newStatus };
+      this.orders = currentOrders;
+      this.saveOrdersToStorage(currentOrders);
       return of({
         success: true,
-        data: this.orders[idx]
+        data: currentOrders[idx]
       }).pipe(delay(500));
     }
     return of({ success: false, error: 'Order not found' }).pipe(delay(500));

@@ -20,24 +20,19 @@ export class LiveOrdersStore {
   private activityTracker = inject(ActivityTrackerService);
 
   constructor() {
-    effect(() => {
-      if (this.networkService.isOnline()) {
-        this.syncPendingActions();
-      }
-    });
   }
 
   // Base State Signals
   private readonly _orders = signal<Order[]>([]);
   private readonly _isLoading = signal<boolean>(false);
   private readonly _error = signal<string | null>(null);
-  
+
   // Filter State Signals
   private readonly _filters = signal<OrderFilterCriteria>({
     searchQuery: '',
     channel: 'ALL'
   });
-  
+
   // Selection State Signals
   private readonly _selectedOrderId = signal<string | null>(null);
 
@@ -61,9 +56,9 @@ export class LiveOrdersStore {
 
     return currentOrders.filter(order => {
       const matchesSearch = order.orderNumber.toLowerCase().includes(criteria.searchQuery.toLowerCase()) ||
-                            order.customerName.toLowerCase().includes(criteria.searchQuery.toLowerCase());
+        order.customerName.toLowerCase().includes(criteria.searchQuery.toLowerCase());
       const matchesChannel = criteria.channel === 'ALL' || order.channel === criteria.channel;
-      
+
       return matchesSearch && matchesChannel;
     });
   });
@@ -80,9 +75,27 @@ export class LiveOrdersStore {
     this._error.set(null);
 
     this.liveOrdersService.getLiveOrders().subscribe({
-      next: (response) => {
+      next: async (response) => {
         if (response.success && response.data) {
-          this._orders.set(response.data);
+          let orders = response.data;
+
+          // Re-apply offline pending actions to survive page refresh
+          try {
+            const pendingActions = await this.offlineSync.getQueue();
+            for (const action of pendingActions) {
+              if (action.type === 'CREATE_ORDER') {
+                if (!orders.some(o => o.id === action.payload.id)) {
+                  orders = [action.payload, ...orders];
+                }
+              } else if (action.type === 'UPDATE_ORDER_STATUS') {
+                orders = orders.map(o => o.id === action.payload.orderId ? { ...o, status: action.payload.newStatus } : o);
+              }
+            }
+          } catch (e) {
+            console.error('Failed to apply offline queue', e);
+          }
+
+          this._orders.set(orders);
         } else {
           this._error.set(response.error || 'Failed to load orders');
         }
@@ -98,7 +111,7 @@ export class LiveOrdersStore {
   updateFilters(criteria: Partial<OrderFilterCriteria>) {
     this._filters.update(current => ({ ...current, ...criteria }));
   }
-  
+
   selectOrder(orderId: string | null) {
     this._selectedOrderId.set(orderId);
   }
@@ -113,7 +126,7 @@ export class LiveOrdersStore {
     const previousStatus = orderToMove.status;
 
     // Optimistic Update
-    this._orders.update(orders => 
+    this._orders.update(orders =>
       orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o)
     );
 
@@ -138,17 +151,16 @@ export class LiveOrdersStore {
     // API Call
     this.liveOrdersService.updateOrderStatus(payload).subscribe({
       error: () => {
-        // Rollback on failure
-        this._orders.set(previousOrders);
-        console.error('Failed to move order, rolling back');
+        console.warn('Failed to move order, queuing action for offline sync');
+        this.offlineSync.queueAction({ type: 'UPDATE_ORDER_STATUS', payload });
       }
     });
   }
 
   addOrder(order: Order) {
-    // Optimistic Update
+    // Optimistic Update: Immediately add order to Signal state
     this._orders.update(orders => [order, ...orders]);
-
+    console.log('Network status:', this.networkService.isOnline());
     this.activityTracker.logActivity({
       type: 'ORDER_CREATED',
       message: `New order ${order.orderNumber} created`,
@@ -156,30 +168,29 @@ export class LiveOrdersStore {
     });
 
     if (!this.networkService.isOnline()) {
+      // OFFLINE: Queue CREATE_ORDER action, do not rollback, keep visible
       this.offlineSync.queueAction({ type: 'CREATE_ORDER', payload: order });
       return;
     }
 
-    // Since addOrder is currently simulated without a dedicated liveOrdersService.createOrder 
-    // we would call it here in a real app.
-    // this.liveOrdersService.createOrder(order).subscribe(...)
-  }
-
-  async syncPendingActions() {
-    const queue = await this.offlineSync.getQueue();
-    if (queue.length === 0) return;
-
-    for (const action of queue) {
-      if (action.type === 'UPDATE_ORDER_STATUS') {
-        this.liveOrdersService.updateOrderStatus(action.payload).subscribe({
-          next: () => this.offlineSync.removeAction(action.id),
-          error: (err) => console.error('Failed to sync update', err)
-        });
-      } else if (action.type === 'CREATE_ORDER') {
-        // Mock create order
-        // this.liveOrdersService.createOrder(action.payload).subscribe(...)
-        await this.offlineSync.removeAction(action.id);
+    // ONLINE: Call LiveOrdersService
+    this.liveOrdersService.createOrder(order).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          // If API succeeds: Replace temporary order with server order to avoid duplicates
+          this._orders.update(orders => orders.map(o => o.id === order.id ? res.data! : o));
+        } else {
+          // If API logical fails: Rollback optimistic order and log error
+          this._orders.update(orders => orders.filter(o => o.id !== order.id));
+          console.error('Failed to create order on server', res.error);
+        }
+      },
+      error: (err) => {
+        // If API network fails: Rollback optimistic order and log error
+        // Note: The previous behavior queued the action here, but we now explicitly rollback
+        this._orders.update(orders => orders.filter(o => o.id !== order.id));
+        console.error('Network error during order creation', err);
       }
-    }
+    });
   }
 }
