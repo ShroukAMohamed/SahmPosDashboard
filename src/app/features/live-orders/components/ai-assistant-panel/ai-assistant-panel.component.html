@@ -124,31 +124,7 @@
             }
           </div>
 
-          <!-- Activity Log Section -->
-          @if (activities().length > 0) {
-            <div class="flex flex-col gap-2 border-t border-border-dark pt-4 mt-2">
-              <h4 class="text-text-muted text-[0.75rem] font-medium uppercase tracking-wider mb-1 m-0">Activity Log</h4>
-              <div class="flex flex-col gap-3">
-                @for (activity of activities(); track activity.id) {
-                  <div class="flex items-start gap-2">
-                    <span class="material-symbols-outlined text-[1rem] shrink-0 mt-0.5"
-                          [ngClass]="{
-                            'text-success': activity.type === 'ORDER_CREATED',
-                            'text-primary': activity.type === 'STATUS_CHANGED',
-                            'text-danger': activity.type === 'STATION_OVERLOADED'
-                          }">
-                      {{ activity.type === 'ORDER_CREATED' ? 'add_circle' : 
-                         activity.type === 'STATUS_CHANGED' ? 'sync_alt' : 'warning' }}
-                    </span>
-                    <div class="flex flex-col">
-                      <span class="text-white text-[0.8125rem]">{{ activity.message }}</span>
-                      <span class="text-text-muted text-[0.625rem]">{{ activity.timestamp | date:'shortTime' }}</span>
-                    </div>
-                  </div>
-                }
-              </div>
-            </div>
-          }
+
         </div>
 
         <!-- Footer / Total -->

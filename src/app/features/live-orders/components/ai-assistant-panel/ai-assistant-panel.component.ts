@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { DrawerModule } from 'primeng/drawer';
 import { Order } from '../../../../core/models/order.interface';
 import { AiAssistantService, OrderInsight } from '../../services/ai-assistant.service';
-import { ActivityTrackerService } from '../../../../core/services/activity-tracker.service';
+
 
 @Component({
   selector: 'app-ai-assistant-panel',
@@ -15,9 +15,7 @@ import { ActivityTrackerService } from '../../../../core/services/activity-track
 })
 export class AiAssistantPanelComponent {
   private aiService = inject(AiAssistantService);
-  private activityTracker = inject(ActivityTrackerService);
-  
-  activities = this.activityTracker.activities;
+
 
   order = input<Order | null>(null);
   close = output<void>();

@@ -3,7 +3,7 @@ import { KitchenMonitorStore } from './kitchen-monitor.store';
 import { LiveOrdersStore } from '../../live-orders/state/live-orders.store';
 import { KitchenMonitorService } from '../services/kitchen-monitor.service';
 import { NetworkService } from '../../../core/services/network.service';
-import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+
 import { signal } from '@angular/core';
 import { Subject } from 'rxjs';
 
@@ -12,7 +12,7 @@ describe('KitchenMonitorStore', () => {
   let mockLiveOrdersStore: any;
   let mockKitchenService: any;
   let mockNetworkService: any;
-  let mockActivityTracker: any;
+
 
   beforeEach(() => {
     mockLiveOrdersStore = {
@@ -30,9 +30,7 @@ describe('KitchenMonitorStore', () => {
       isOnline: signal(true)
     };
 
-    mockActivityTracker = {
-      logActivity: jasmine.createSpy('logActivity')
-    };
+
 
     TestBed.configureTestingModule({
       providers: [
@@ -40,7 +38,7 @@ describe('KitchenMonitorStore', () => {
         { provide: LiveOrdersStore, useValue: mockLiveOrdersStore },
         { provide: KitchenMonitorService, useValue: mockKitchenService },
         { provide: NetworkService, useValue: mockNetworkService },
-        { provide: ActivityTrackerService, useValue: mockActivityTracker }
+
       ]
     });
 

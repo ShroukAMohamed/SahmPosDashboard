@@ -5,7 +5,7 @@ import { KitchenEvent } from '../interfaces/kitchen-event.interface';
 import { KitchenMonitorService } from '../services/kitchen-monitor.service';
 import { KitchenStatus } from '../types/kitchen-status.type';
 import { NetworkService } from '../../../core/services/network.service';
-import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+
 
 export interface AIInsight {
   id: string;
@@ -30,7 +30,7 @@ export class KitchenMonitorStore {
   private liveOrdersStore = inject(LiveOrdersStore);
   private kitchenService = inject(KitchenMonitorService);
   private networkService = inject(NetworkService);
-  private activityTracker = inject(ActivityTrackerService);
+
 
   // We can track acknowledged alerts manually
   private readonly _acknowledgedAlertIds = signal<Set<string>>(new Set());
@@ -209,10 +209,6 @@ export class KitchenMonitorStore {
         if (station.status === 'OVERLOADED') {
           if (!this.previouslyOverloaded.has(station.id)) {
             this.previouslyOverloaded.add(station.id);
-            this.activityTracker.logActivity({
-              type: 'STATION_OVERLOADED',
-              message: `${station.name} exceeded capacity limit.`,
-            });
           }
         } else {
           this.previouslyOverloaded.delete(station.id);

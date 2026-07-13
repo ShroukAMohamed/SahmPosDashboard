@@ -1,10 +1,10 @@
-<main class="flex-1 flex overflow-hidden h-full">
-  <!-- Left Column: Categories (20%) -->
-  <app-category-sidebar></app-category-sidebar>
+<main class="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden h-full">
+  <!-- Top/Left Column: Categories -->
+  <app-category-sidebar class="shrink-0"></app-category-sidebar>
 
-  <!-- Center Column: Catalog (50%) -->
-  <app-product-catalog class="flex-1"></app-product-catalog>
+  <!-- Center Column: Catalog -->
+  <app-product-catalog class="flex-1 min-h-[500px] lg:min-h-0"></app-product-catalog>
 
-  <!-- Right Column: Cart (30%) -->
-  <app-cart-panel></app-cart-panel>
+  <!-- Bottom/Right Column: Cart -->
+  <app-cart-panel class="shrink-0"></app-cart-panel>
 </main>

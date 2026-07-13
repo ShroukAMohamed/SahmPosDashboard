@@ -2,14 +2,14 @@ import { TestBed, fakeAsync, tick, flush } from '@angular/core/testing';
 import { LiveOrdersStore } from './live-orders.store';
 import { NetworkService } from '../../../core/services/network.service';
 import { OfflineSyncService } from '../../../core/services/offline-sync.service';
-import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+
 import { LiveOrdersService } from '../services/live-orders.service';
 import { MockApiService } from '../../../core/mock-api/mock-api.service';
 import { of } from 'rxjs';
 
 describe('Offline Integration Scenario', () => {
   let mockLiveOrdersService: any;
-  let mockActivityTracker: any;
+
   let mockApiService: any;
 
   beforeEach(async () => {
@@ -19,9 +19,7 @@ describe('Offline Integration Scenario', () => {
       updateOrderStatus: jasmine.createSpy().and.returnValue(of({ success: true, data: {} }))
     };
 
-    mockActivityTracker = {
-      logActivity: jasmine.createSpy()
-    };
+
 
     mockApiService = {
       healthCheck: jasmine.createSpy().and.returnValue(of(true))
@@ -33,7 +31,7 @@ describe('Offline Integration Scenario', () => {
         OfflineSyncService,
         NetworkService,
         { provide: LiveOrdersService, useValue: mockLiveOrdersService },
-        { provide: ActivityTrackerService, useValue: mockActivityTracker },
+
         { provide: MockApiService, useValue: mockApiService }
       ]
     });

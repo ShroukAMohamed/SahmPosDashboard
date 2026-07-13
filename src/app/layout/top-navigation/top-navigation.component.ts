@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { SyncIndicatorComponent } from '../../shared/components/sync-indicator/sync-indicator.component';
 import { NetworkService } from '../../core/services/network.service';
@@ -14,6 +14,8 @@ import { NetworkService } from '../../core/services/network.service';
 export class TopNavigationComponent implements OnInit, OnDestroy {
   networkService = inject(NetworkService);
   currentTime: string = '';
+  isMenuOpen = signal(false);
+
   private timer: any;
 
   ngOnInit() {

@@ -5,6 +5,20 @@
   <!-- Main Content Area -->
   <div class="flex-1 flex min-h-0 relative">
     
+    <!-- Realtime Connection Status -->
+    <div class="absolute top-2 right-2 z-10 flex items-center gap-1.5 px-3 py-1 rounded-full bg-background border border-border-dark shadow-sm text-xs font-semibold">
+      @if (store.realtimeConnectionState() === 'CONNECTING') {
+        <span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+        <span class="text-primary">Connecting...</span>
+      } @else if (store.realtimeConnectionState() === 'CONNECTED') {
+        <span class="w-2 h-2 rounded-full bg-success"></span>
+        <span class="text-success">Live</span>
+      } @else {
+        <span class="w-2 h-2 rounded-full bg-danger"></span>
+        <span class="text-danger">Disconnected</span>
+      }
+    </div>
+    
     <!-- Loading State -->
     @if (store.isLoading()) {
       <main class="flex-1 overflow-x-auto p-6 bg-background h-full w-full">

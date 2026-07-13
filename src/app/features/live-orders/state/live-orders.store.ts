@@ -1,11 +1,13 @@
-import { Injectable, computed, inject, signal, effect } from '@angular/core';
+import { Injectable, computed, inject, signal, effect, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Order } from '../../../core/models/order.interface';
 import { LiveOrdersService } from '../services/live-orders.service';
+import { LiveOrdersRealtimeService, RealtimeEvent } from '../services/live-orders-realtime.service';
 import { OrderStatus } from '../../../core/types/order-status.type';
 import { OrderChannel } from '../../../core/types/order-channel.type';
 import { NetworkService } from '../../../core/services/network.service';
 import { OfflineSyncService } from '../../../core/services/offline-sync.service';
-import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+
 
 export interface OrderFilterCriteria {
   searchQuery: string;
@@ -15,17 +17,50 @@ export interface OrderFilterCriteria {
 @Injectable({ providedIn: 'root' })
 export class LiveOrdersStore {
   private liveOrdersService = inject(LiveOrdersService);
+  private realtimeService = inject(LiveOrdersRealtimeService);
   private networkService = inject(NetworkService);
   private offlineSync = inject(OfflineSyncService);
-  private activityTracker = inject(ActivityTrackerService);
+
+  private destroyRef = inject(DestroyRef);
 
   constructor() {
+    this.initRealtimeConnection();
+  }
+
+  private initRealtimeConnection() {
+    this.realtimeService.connect();
+
+    this.realtimeService.connectionState$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(state => this._realtimeConnectionState.set(state));
+
+    this.realtimeService.events$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event: RealtimeEvent) => {
+        if (event.type === 'ORDER_CREATED') {
+          const newOrder = event.payload as Order;
+          // Add only if not existing
+          if (!this._orders().some(o => o.id === newOrder.id)) {
+            this._orders.update(orders => [newOrder, ...orders]);
+          }
+        } else if (event.type === 'ORDER_STATUS_CHANGED') {
+          const { orderId, newStatus } = event.payload;
+          this._orders.update(orders => 
+            orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o)
+          );
+        }
+      });
+
+    this.destroyRef.onDestroy(() => {
+      this.realtimeService.disconnect();
+    });
   }
 
   // Base State Signals
   private readonly _orders = signal<Order[]>([]);
   private readonly _isLoading = signal<boolean>(false);
   private readonly _error = signal<string | null>(null);
+  private readonly _realtimeConnectionState = signal<'CONNECTING' | 'CONNECTED' | 'DISCONNECTED' | 'ERROR'>('DISCONNECTED');
 
   // Filter State Signals
   private readonly _filters = signal<OrderFilterCriteria>({
@@ -42,6 +77,7 @@ export class LiveOrdersStore {
   readonly error = this._error.asReadonly();
   readonly filters = this._filters.asReadonly();
   readonly selectedOrderId = this._selectedOrderId.asReadonly();
+  readonly realtimeConnectionState = this._realtimeConnectionState.asReadonly();
 
   // Computed Derived State
   readonly selectedOrder = computed(() => {
@@ -130,11 +166,7 @@ export class LiveOrdersStore {
       orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o)
     );
 
-    this.activityTracker.logActivity({
-      type: 'STATUS_CHANGED',
-      message: `Order ${orderToMove.orderNumber} moved from ${previousStatus} to ${newStatus}`,
-      orderId
-    });
+
 
     const payload = {
       orderId,
@@ -161,11 +193,7 @@ export class LiveOrdersStore {
     // Optimistic Update: Immediately add order to Signal state
     this._orders.update(orders => [order, ...orders]);
     console.log('Network status:', this.networkService.isOnline());
-    this.activityTracker.logActivity({
-      type: 'ORDER_CREATED',
-      message: `New order ${order.orderNumber} created`,
-      orderId: order.id
-    });
+
 
     if (!this.networkService.isOnline()) {
       // OFFLINE: Queue CREATE_ORDER action, do not rollback, keep visible

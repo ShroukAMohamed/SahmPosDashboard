@@ -3,7 +3,7 @@ import { LiveOrdersStore } from './live-orders.store';
 import { LiveOrdersService } from '../services/live-orders.service';
 import { NetworkService } from '../../../core/services/network.service';
 import { OfflineSyncService } from '../../../core/services/offline-sync.service';
-import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+
 import { of } from 'rxjs';
 
 describe('LiveOrdersStore', () => {
@@ -11,7 +11,7 @@ describe('LiveOrdersStore', () => {
   let mockLiveOrdersService: any;
   let mockNetworkService: any;
   let mockOfflineSync: any;
-  let mockActivityTracker: any;
+
 
   beforeEach(() => {
     mockLiveOrdersService = {
@@ -29,9 +29,7 @@ describe('LiveOrdersStore', () => {
       getQueue: jasmine.createSpy('getQueue').and.returnValue(Promise.resolve([]))
     };
 
-    mockActivityTracker = {
-      logActivity: jasmine.createSpy('logActivity')
-    };
+
 
     TestBed.configureTestingModule({
       providers: [
@@ -39,7 +37,7 @@ describe('LiveOrdersStore', () => {
         { provide: LiveOrdersService, useValue: mockLiveOrdersService },
         { provide: NetworkService, useValue: mockNetworkService },
         { provide: OfflineSyncService, useValue: mockOfflineSync },
-        { provide: ActivityTrackerService, useValue: mockActivityTracker }
+
       ]
     });
 
@@ -57,11 +55,11 @@ describe('LiveOrdersStore', () => {
     expect(store.isLoading()).toBeFalse();
   }));
 
-  it('should add order and log activity', () => {
+  it('should add order', () => {
     const order: any = { id: '1', orderNumber: '123' };
     store.addOrder(order);
     expect(store.orders().length).toBe(1);
-    expect(mockActivityTracker.logActivity).toHaveBeenCalled();
+
   });
 
   it('should queue action when offline on addOrder', () => {
