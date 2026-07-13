@@ -14,6 +14,16 @@ describe('ProductCardComponent', () => {
 
     fixture = TestBed.createComponent(ProductCardComponent);
     component = fixture.componentInstance;
+    
+    // Set required input
+    fixture.componentRef.setInput('product', {
+      id: '1',
+      name: 'Test Product',
+      description: 'Test Description',
+      price: 10,
+      categoryId: '1'
+    });
+    
     fixture.detectChanges();
   });
 

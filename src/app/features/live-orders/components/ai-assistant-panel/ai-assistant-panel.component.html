@@ -34,23 +34,56 @@
         <div class="flex-1 overflow-y-auto scrollbar-hide p-4 flex flex-col gap-6">
           
           <!-- AI Insights Box -->
-          <div class="bg-primary/10 border border-primary rounded-md p-4 flex flex-col gap-4 relative overflow-hidden animate-pulse">
-            <div class="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 blur-3xl rounded-full"></div>
-            <div class="flex items-start gap-2 relative z-10">
-              <span class="material-symbols-outlined text-primary shrink-0 text-xl">smart_toy</span>
-              <div class="flex flex-col gap-2">
-                <h3 class="text-primary text-[0.875rem] font-semibold leading-tight uppercase tracking-wider m-0">AI Insights & Suggestions</h3>
-                <div class="flex flex-col gap-1">
-                  <div class="flex items-center gap-1 text-white text-[0.8125rem]">
-                    <span class="material-symbols-outlined text-primary text-base">trending_up</span>Upselling suggestions
-                  </div>
-                  <div class="flex items-center gap-1 text-white text-[0.8125rem]">
-                    <span class="material-symbols-outlined text-primary text-base">info</span>Missing order information
-                  </div>
-                  @if (orderObj.urgency === 'CRITICAL' || orderObj.urgency === 'URGENT') {
-                    <div class="flex items-center gap-1 text-danger text-[0.8125rem]">
-                      <span class="material-symbols-outlined text-base">warning</span>High priority warning
+          <div class="border rounded-md p-4 flex flex-col gap-4 relative overflow-hidden transition-colors duration-500"
+               [ngClass]="{
+                 'bg-surface border-border-dark': isAnalyzing() || error(),
+                 'bg-primary/10 border-primary': !isAnalyzing() && !error()
+               }">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 blur-3xl rounded-full transition-opacity duration-500"
+                 [class.opacity-0]="isAnalyzing() || error()"></div>
+            
+            <div class="flex items-start gap-2 relative z-10 w-full">
+              <span class="material-symbols-outlined shrink-0 text-xl"
+                    [ngClass]="error() ? 'text-danger' : 'text-primary'"
+                    [class.animate-spin]="isAnalyzing()">
+                {{ isAnalyzing() ? 'sync' : 'smart_toy' }}
+              </span>
+              
+              <div class="flex flex-col gap-2 w-full">
+                <div class="flex justify-between items-center w-full">
+                  <h3 class="text-[0.875rem] font-semibold leading-tight uppercase tracking-wider m-0"
+                      [ngClass]="error() ? 'text-danger' : 'text-primary'">
+                    AI Insights & Suggestions
+                  </h3>
+                  @if (error()) {
+                    <button class="text-[0.625rem] font-bold uppercase tracking-wider text-text-muted hover:text-white cursor-pointer border-none bg-transparent" (click)="analyze(orderObj)">RETRY</button>
+                  }
+                </div>
+                
+                <div class="flex flex-col gap-2 mt-1">
+                  @if (isAnalyzing()) {
+                    <div class="flex items-center gap-2 text-text-muted text-[0.8125rem] animate-pulse">
+                      Analyzing order details...
                     </div>
+                  } @else if (error()) {
+                    <div class="flex items-center gap-2 text-text-muted text-[0.8125rem]">
+                      {{ error() }}
+                    </div>
+                  } @else {
+                    @for (insight of insights(); track insight.title) {
+                      <div class="flex items-start gap-2 text-[0.8125rem]">
+                        <span class="material-symbols-outlined text-base mt-0.5 shrink-0"
+                              [ngClass]="{
+                                'text-danger': insight.type === 'warning',
+                                'text-primary': insight.type === 'info',
+                                'text-success': insight.type === 'success'
+                              }">{{ insight.icon }}</span>
+                        <div class="flex flex-col">
+                          <span class="text-white font-medium">{{ insight.title }}</span>
+                          <span class="text-text-muted text-[0.75rem]">{{ insight.description }}</span>
+                        </div>
+                      </div>
+                    }
                   }
                 </div>
               </div>
@@ -90,6 +123,32 @@
               </div>
             }
           </div>
+
+          <!-- Activity Log Section -->
+          @if (activities().length > 0) {
+            <div class="flex flex-col gap-2 border-t border-border-dark pt-4 mt-2">
+              <h4 class="text-text-muted text-[0.75rem] font-medium uppercase tracking-wider mb-1 m-0">Activity Log</h4>
+              <div class="flex flex-col gap-3">
+                @for (activity of activities(); track activity.id) {
+                  <div class="flex items-start gap-2">
+                    <span class="material-symbols-outlined text-[1rem] shrink-0 mt-0.5"
+                          [ngClass]="{
+                            'text-success': activity.type === 'ORDER_CREATED',
+                            'text-primary': activity.type === 'STATUS_CHANGED',
+                            'text-danger': activity.type === 'STATION_OVERLOADED'
+                          }">
+                      {{ activity.type === 'ORDER_CREATED' ? 'add_circle' : 
+                         activity.type === 'STATUS_CHANGED' ? 'sync_alt' : 'warning' }}
+                    </span>
+                    <div class="flex flex-col">
+                      <span class="text-white text-[0.8125rem]">{{ activity.message }}</span>
+                      <span class="text-text-muted text-[0.625rem]">{{ activity.timestamp | date:'shortTime' }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
         </div>
 
         <!-- Footer / Total -->

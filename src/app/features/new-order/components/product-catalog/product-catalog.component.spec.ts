@@ -2,13 +2,16 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ProductCatalogComponent } from './product-catalog.component';
 
+import { MessageService } from 'primeng/api';
+
 describe('ProductCatalogComponent', () => {
   let component: ProductCatalogComponent;
   let fixture: ComponentFixture<ProductCatalogComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ProductCatalogComponent]
+      imports: [ProductCatalogComponent],
+      providers: [MessageService]
     })
     .compileComponents();
 

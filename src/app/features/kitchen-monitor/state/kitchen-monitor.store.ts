@@ -1,9 +1,11 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
+import { Injectable, signal, computed, inject, effect } from '@angular/core';
 import { LiveOrdersStore } from '../../live-orders/state/live-orders.store';
 import { KitchenStation, PendingItem } from '../interfaces/kitchen-station.interface';
 import { KitchenEvent } from '../interfaces/kitchen-event.interface';
 import { KitchenMonitorService } from '../services/kitchen-monitor.service';
 import { KitchenStatus } from '../types/kitchen-status.type';
+import { NetworkService } from '../../../core/services/network.service';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 
 export interface AIInsight {
   id: string;
@@ -27,14 +29,16 @@ export interface Alert {
 export class KitchenMonitorStore {
   private liveOrdersStore = inject(LiveOrdersStore);
   private kitchenService = inject(KitchenMonitorService);
+  private networkService = inject(NetworkService);
+  private activityTracker = inject(ActivityTrackerService);
 
   // We can track acknowledged alerts manually
   private readonly _acknowledgedAlertIds = signal<Set<string>>(new Set());
-  private readonly _isSynced = signal<boolean>(true);
+  private previouslyOverloaded = new Set<string>();
 
   readonly isLoading = this.liveOrdersStore.isLoading;
   readonly error = this.liveOrdersStore.error;
-  readonly isSynced = this._isSynced.asReadonly();
+  readonly isSynced = this.networkService.isOnline;
 
   // Base constants for stations mapping
   private stationConfigs = [
@@ -197,6 +201,23 @@ export class KitchenMonitorStore {
       // In a real app, we might push these events into a log or create temporary alerts.
       // We will rely on derived state for now as requested.
       console.log('Received simulated operational event:', event);
+    });
+
+    effect(() => {
+      const currentStations = this.stations();
+      currentStations.forEach(station => {
+        if (station.status === 'OVERLOADED') {
+          if (!this.previouslyOverloaded.has(station.id)) {
+            this.previouslyOverloaded.add(station.id);
+            this.activityTracker.logActivity({
+              type: 'STATION_OVERLOADED',
+              message: `${station.name} exceeded capacity limit.`,
+            });
+          }
+        } else {
+          this.previouslyOverloaded.delete(station.id);
+        }
+      });
     });
   }
 }

@@ -38,7 +38,10 @@
       </div>
       } @else {
       @for (product of store.filteredProducts(); track product.id) {
-      <app-product-card [product]="product" (add)="store.addToCart($event)">
+      <app-product-card 
+        [product]="product" 
+        [searchQuery]="store.searchQuery()"
+        (add)="store.addToCart($event)">
       </app-product-card>
       }
 

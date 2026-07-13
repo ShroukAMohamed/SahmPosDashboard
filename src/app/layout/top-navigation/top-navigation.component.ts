@@ -1,6 +1,7 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { SyncIndicatorComponent } from '../../shared/components/sync-indicator/sync-indicator.component';
+import { NetworkService } from '../../core/services/network.service';
 
 @Component({
   selector: 'app-top-navigation',
@@ -11,8 +12,8 @@ import { SyncIndicatorComponent } from '../../shared/components/sync-indicator/s
   styleUrls: ['./top-navigation.component.scss']
 })
 export class TopNavigationComponent implements OnInit, OnDestroy {
+  networkService = inject(NetworkService);
   currentTime: string = '';
-  isSynced: boolean = true;
   private timer: any;
 
   ngOnInit() {

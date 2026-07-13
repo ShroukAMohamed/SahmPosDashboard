@@ -32,6 +32,6 @@
       <span class="material-symbols-outlined text-[20px]">schedule</span>
       <span>{{ currentTime }}</span>
     </div>
-    <app-sync-indicator [isSynced]="isSynced"></app-sync-indicator>
+    <app-sync-indicator [isSynced]="networkService.isOnline()"></app-sync-indicator>
   </div>
 </header>

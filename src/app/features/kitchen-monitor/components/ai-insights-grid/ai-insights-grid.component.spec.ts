@@ -14,6 +14,7 @@ describe('AiInsightsGridComponent', () => {
 
     fixture = TestBed.createComponent(AiInsightsGridComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('insights', []);
     fixture.detectChanges();
   });
 

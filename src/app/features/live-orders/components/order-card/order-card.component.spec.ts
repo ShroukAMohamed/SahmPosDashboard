@@ -14,6 +14,17 @@ describe('OrderCardComponent', () => {
 
     fixture = TestBed.createComponent(OrderCardComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('order', {
+      id: '1',
+      orderNumber: '123',
+      customerName: 'Test Customer',
+      status: 'RECEIVED',
+      channel: 'DINE_IN',
+      urgency: 'NORMAL',
+      totalAmount: 100,
+      placedAt: new Date().toISOString(),
+      items: []
+    });
     fixture.detectChanges();
   });
 

@@ -3,8 +3,9 @@
   <input 
     type="text" 
     [formControl]="searchControl"
-    (focus)="showRecentSearches.set(true)"
+    (focus)="onFocus()"
     (blur)="showRecentSearches.set(false)"
+    (keydown)="onKeyDown($event)"
     [placeholder]="placeholder()" 
     class="w-full h-full bg-surface border border-border-dark rounded-md py-2 pl-10 pr-12 text-sm text-white placeholder:text-text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
   >
@@ -21,10 +22,12 @@
         <button class="hover:text-white transition-colors cursor-pointer" (click)="clearRecentSearches()">Clear</button>
       </div>
       <ul class="py-1 m-0 p-0 list-none">
-        @for (search of recentSearches(); track search) {
+        @for (search of recentSearches(); track search; let idx = $index) {
           <li 
             class="px-3 py-2 text-sm text-white hover:bg-surface-hover cursor-pointer flex items-center gap-2"
-            (click)="selectRecentSearch(search)">
+            [class.bg-surface-hover]="idx === focusedIndex()"
+            (click)="selectRecentSearch(search)"
+            (mouseenter)="focusedIndex.set(idx)">
             <span class="material-symbols-outlined text-text-muted text-[16px]">history</span>
             {{ search }}
           </li>

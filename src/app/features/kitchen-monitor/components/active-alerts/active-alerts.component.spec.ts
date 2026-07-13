@@ -14,6 +14,10 @@ describe('ActiveAlertsComponent', () => {
 
     fixture = TestBed.createComponent(ActiveAlertsComponent);
     component = fixture.componentInstance;
+    
+    fixture.componentRef.setInput('count', 0);
+    fixture.componentRef.setInput('alerts', []);
+    
     fixture.detectChanges();
   });
 

@@ -1,8 +1,11 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, computed, inject, signal, effect } from '@angular/core';
 import { Order } from '../../../core/models/order.interface';
 import { LiveOrdersService } from '../services/live-orders.service';
 import { OrderStatus } from '../../../core/types/order-status.type';
 import { OrderChannel } from '../../../core/types/order-channel.type';
+import { NetworkService } from '../../../core/services/network.service';
+import { OfflineSyncService } from '../../../core/services/offline-sync.service';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 
 export interface OrderFilterCriteria {
   searchQuery: string;
@@ -12,6 +15,17 @@ export interface OrderFilterCriteria {
 @Injectable({ providedIn: 'root' })
 export class LiveOrdersStore {
   private liveOrdersService = inject(LiveOrdersService);
+  private networkService = inject(NetworkService);
+  private offlineSync = inject(OfflineSyncService);
+  private activityTracker = inject(ActivityTrackerService);
+
+  constructor() {
+    effect(() => {
+      if (this.networkService.isOnline()) {
+        this.syncPendingActions();
+      }
+    });
+  }
 
   // Base State Signals
   private readonly _orders = signal<Order[]>([]);
@@ -60,6 +74,7 @@ export class LiveOrdersStore {
   readonly deliveredOrders = computed(() => this.filteredOrders().filter(o => o.status === 'DELIVERED'));
 
   // Actions
+  // Actions
   loadOrders() {
     this._isLoading.set(true);
     this._error.set(null);
@@ -102,13 +117,26 @@ export class LiveOrdersStore {
       orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o)
     );
 
-    // API Call
-    this.liveOrdersService.updateOrderStatus({
+    this.activityTracker.logActivity({
+      type: 'STATUS_CHANGED',
+      message: `Order ${orderToMove.orderNumber} moved from ${previousStatus} to ${newStatus}`,
+      orderId
+    });
+
+    const payload = {
       orderId,
       newStatus,
       previousStatus,
       updatedAt: new Date().toISOString()
-    }).subscribe({
+    };
+
+    if (!this.networkService.isOnline()) {
+      this.offlineSync.queueAction({ type: 'UPDATE_ORDER_STATUS', payload });
+      return;
+    }
+
+    // API Call
+    this.liveOrdersService.updateOrderStatus(payload).subscribe({
       error: () => {
         // Rollback on failure
         this._orders.set(previousOrders);
@@ -118,7 +146,40 @@ export class LiveOrdersStore {
   }
 
   addOrder(order: Order) {
+    // Optimistic Update
     this._orders.update(orders => [order, ...orders]);
-    // In a real app, this would also make an API call to save the order to backend.
+
+    this.activityTracker.logActivity({
+      type: 'ORDER_CREATED',
+      message: `New order ${order.orderNumber} created`,
+      orderId: order.id
+    });
+
+    if (!this.networkService.isOnline()) {
+      this.offlineSync.queueAction({ type: 'CREATE_ORDER', payload: order });
+      return;
+    }
+
+    // Since addOrder is currently simulated without a dedicated liveOrdersService.createOrder 
+    // we would call it here in a real app.
+    // this.liveOrdersService.createOrder(order).subscribe(...)
+  }
+
+  async syncPendingActions() {
+    const queue = await this.offlineSync.getQueue();
+    if (queue.length === 0) return;
+
+    for (const action of queue) {
+      if (action.type === 'UPDATE_ORDER_STATUS') {
+        this.liveOrdersService.updateOrderStatus(action.payload).subscribe({
+          next: () => this.offlineSync.removeAction(action.id),
+          error: (err) => console.error('Failed to sync update', err)
+        });
+      } else if (action.type === 'CREATE_ORDER') {
+        // Mock create order
+        // this.liveOrdersService.createOrder(action.payload).subscribe(...)
+        await this.offlineSync.removeAction(action.id);
+      }
+    }
   }
 }

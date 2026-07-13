@@ -15,9 +15,9 @@
       @if (product().isSpicy) {
         <span class="text-primary">Spicy</span>
       }
-      {{ product().name.replace('Spicy ', '') }}
+      <span [innerHTML]="product().name.replace('Spicy ', '') | highlight:searchQuery()"></span>
     </span>
-    <span class="text-xs text-text-muted truncate">{{ product().description }}</span>
+    <span class="text-xs text-text-muted truncate" [innerHTML]="product().description | highlight:searchQuery()"></span>
     <span class="text-primary font-medium mt-1 text-sm">${{ product().price }}</span>
   </div>
 </button>

@@ -20,6 +20,7 @@ export class SearchInputComponent implements OnInit, OnDestroy {
   searchControl = new FormControl('');
   recentSearches = signal<string[]>([]);
   showRecentSearches = signal<boolean>(false);
+  focusedIndex = signal<number>(-1);
 
   private destroy$ = new Subject<void>();
 
@@ -46,6 +47,31 @@ export class SearchInputComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  onKeyDown(event: KeyboardEvent) {
+    if (!this.showRecentSearches() || this.recentSearches().length === 0) return;
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      this.focusedIndex.update(i => Math.min(i + 1, this.recentSearches().length - 1));
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      this.focusedIndex.update(i => Math.max(i - 1, -1));
+    } else if (event.key === 'Enter') {
+      if (this.focusedIndex() >= 0) {
+        event.preventDefault();
+        this.selectRecentSearch(this.recentSearches()[this.focusedIndex()]);
+      }
+    } else if (event.key === 'Escape') {
+      this.showRecentSearches.set(false);
+      this.focusedIndex.set(-1);
+    }
+  }
+
+  onFocus() {
+    this.showRecentSearches.set(true);
+    this.focusedIndex.set(-1);
+  }
+
   addRecentSearch(query: string) {
     this.recentSearches.update(searches => {
       const newSearches = [query, ...searches].slice(0, 5); // Keep last 5
@@ -57,10 +83,12 @@ export class SearchInputComponent implements OnInit, OnDestroy {
   selectRecentSearch(query: string) {
     this.searchControl.setValue(query);
     this.showRecentSearches.set(false);
+    this.focusedIndex.set(-1);
   }
 
   clearRecentSearches() {
     this.recentSearches.set([]);
     localStorage.removeItem(this.localStorageKey());
+    this.focusedIndex.set(-1);
   }
 }
