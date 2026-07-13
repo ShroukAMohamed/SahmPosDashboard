@@ -1,0 +1,37 @@
+<header class="flex items-center justify-between border-b border-border-dark px-6 py-4 bg-surface shrink-0">
+  <div class="flex items-center gap-8">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 bg-primary rounded flex items-center justify-center">
+        <span class="material-symbols-outlined text-black font-bold">restaurant</span>
+      </div>
+      <span class="text-lg font-bold tracking-tight text-white">Sahm <span class="text-text-muted font-medium">Dark Ops</span></span>
+    </div>
+    
+    <nav class="flex items-center gap-6">
+      <a routerLink="/live-orders" 
+         routerLinkActive="!text-primary !font-bold after:absolute after:-bottom-[21px] after:left-0 after:right-0 after:h-1 after:bg-primary after:rounded-t-full" 
+         [routerLinkActiveOptions]="{exact: false}"
+         class="relative text-sm font-medium text-text-muted hover:text-white transition-colors cursor-pointer no-underline">
+        Live Orders
+      </a>
+      <a routerLink="/kitchen-monitor" 
+         routerLinkActive="!text-primary !font-bold after:absolute after:-bottom-[21px] after:left-0 after:right-0 after:h-1 after:bg-primary after:rounded-t-full"
+         class="relative text-sm font-medium text-text-muted hover:text-white transition-colors cursor-pointer no-underline">
+        Kitchen Monitor
+      </a>
+      <a routerLink="/new-order" 
+         routerLinkActive="!text-primary !font-bold after:absolute after:-bottom-[21px] after:left-0 after:right-0 after:h-1 after:bg-primary after:rounded-t-full"
+         class="relative text-sm font-medium text-text-muted hover:text-white transition-colors cursor-pointer no-underline">
+        New Order
+      </a>
+    </nav>
+  </div>
+  
+  <div class="flex items-center gap-4 text-sm font-medium">
+    <div class="flex items-center gap-2 text-text-muted">
+      <span class="material-symbols-outlined text-[20px]">schedule</span>
+      <span>{{ currentTime }}</span>
+    </div>
+    <app-sync-indicator [isSynced]="isSynced"></app-sync-indicator>
+  </div>
+</header>

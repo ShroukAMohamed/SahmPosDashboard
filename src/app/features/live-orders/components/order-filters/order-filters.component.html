@@ -1,0 +1,36 @@
+<div class="relative z-20 bg-background border-b border-border-dark px-6 py-4 flex flex-wrap items-center gap-4 shrink-0">
+  <div class="flex-1 min-w-[18.75rem] h-[40px]">
+    <app-search-input 
+      placeholder="Search by Order ID or Customer Name..."
+      localStorageKey="liveOrdersRecentSearches"
+      (search)="onSearch($event)">
+    </app-search-input>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <div class="flex bg-surface border border-border-dark rounded-md p-1">
+      @for (channel of channels; track channel.value) {
+        <button 
+          class="px-3 py-1 text-xs font-semibold rounded transition-colors"
+          [ngClass]="{
+            'bg-primary text-background': store.filters().channel === channel.value,
+            'text-text-muted hover:text-white hover:bg-surface-hover': store.filters().channel !== channel.value
+          }"
+          (click)="onChannelSelect(channel.value)">
+          {{ channel.label }}
+        </button>
+      }
+    </div>
+    
+    <div class="relative">
+      <select class="appearance-none bg-surface border border-border-dark rounded-md py-2 pl-3 pr-10 text-sm text-white focus:outline-none focus:border-primary transition-colors cursor-pointer">
+        <option>All Statuses</option>
+        <option>Received</option>
+        <option>Preparing</option>
+        <option>Ready</option>
+        <option>Delivered</option>
+      </select>
+      <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none text-[1.125rem]">expand_more</span>
+    </div>
+  </div>
+</div>

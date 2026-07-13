@@ -1,0 +1,50 @@
+<div 
+  class="bg-surface border rounded-md p-4 flex flex-col gap-3 group relative cursor-default transition-colors"
+  [ngClass]="{
+    'border-danger shadow-[0_0_15px_rgba(239,68,68,0.1)]': station().status === 'critical',
+    'border-border-dark hover:border-primary': station().status !== 'critical'
+  }">
+  
+  <div class="flex justify-between items-start">
+    <div class="flex items-center gap-2">
+      <span class="material-symbols-outlined" 
+            [ngClass]="station().status === 'critical' ? 'text-danger' : (station().status === 'warning' ? 'text-primary' : 'text-text-muted')">
+        {{ station().icon }}
+      </span>
+      <h3 class="text-base font-semibold m-0 text-white">{{ station().name }}</h3>
+    </div>
+    <span class="text-sm font-semibold"
+          [ngClass]="station().status === 'critical' ? 'text-danger' : 'text-white'">
+      {{ station().currentLoad }}/{{ station().maxCapacity }}
+    </span>
+  </div>
+  
+  <div class="w-full h-2 bg-surface-hover rounded-full overflow-hidden">
+    <div class="h-full rounded-full transition-all duration-500" 
+         [ngClass]="station().status === 'critical' ? 'bg-danger' : (station().status === 'warning' ? 'bg-primary' : 'bg-success')"
+         [style.width.%]="percentage()"></div>
+  </div>
+  
+  <p class="text-xs font-medium m-0 flex items-center gap-1"
+     [ngClass]="station().status === 'critical' ? 'text-danger' : 'text-text-muted'">
+    @if (station().status === 'critical') {
+      <span class="material-symbols-outlined text-[14px]">warning</span>
+    }
+    {{ statusLabel() }}
+  </p>
+
+  <!-- Hover Popover -->
+  <div class="absolute top-full left-0 mt-2 w-full bg-surface-hover border border-border-dark rounded-md p-3 shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 pointer-events-none">
+    <p class="text-xs text-text-muted mb-2 font-semibold uppercase m-0">Pending Items</p>
+    <ul class="text-sm space-y-1 m-0 p-0 list-none">
+      @for (item of station().pendingItems; track item.name) {
+        <li class="flex justify-between">
+          <span class="text-white">{{ item.count }}x {{ item.name }}</span>
+          <span [ngClass]="item.isWarning ? 'text-danger' : (item.time === 'Ready' ? 'text-success' : 'text-text-muted')">
+            {{ item.time }}
+          </span>
+        </li>
+      }
+    </ul>
+  </div>
+</div>

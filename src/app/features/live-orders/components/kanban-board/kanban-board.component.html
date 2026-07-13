@@ -1,0 +1,39 @@
+<main class="flex-1 overflow-x-auto kanban-scroll p-6 bg-background h-full" cdkDropListGroup>
+  <div class="flex gap-6 h-full min-w-max pb-4">
+    <app-kanban-column 
+      title="Received" 
+      status="RECEIVED"
+      [orders]="store.receivedOrders()"
+      (actionClick)="onOrderAction($event)"
+      (viewDetailsClick)="onViewDetails($event)"
+      (drop)="onDrop($event, 'RECEIVED')">
+    </app-kanban-column>
+
+    <app-kanban-column 
+      title="Preparing" 
+      status="PREPARING"
+      [orders]="store.preparingOrders()"
+      (actionClick)="onOrderAction($event)"
+      (viewDetailsClick)="onViewDetails($event)"
+      (drop)="onDrop($event, 'PREPARING')">
+    </app-kanban-column>
+
+    <app-kanban-column 
+      title="Ready" 
+      status="READY"
+      [orders]="store.readyOrders()"
+      (actionClick)="onOrderAction($event)"
+      (viewDetailsClick)="onViewDetails($event)"
+      (drop)="onDrop($event, 'READY')">
+    </app-kanban-column>
+
+    <app-kanban-column 
+      title="Delivered" 
+      status="DELIVERED"
+      [orders]="store.deliveredOrders()"
+      (actionClick)="onOrderAction($event)"
+      (viewDetailsClick)="onViewDetails($event)"
+      (drop)="onDrop($event, 'DELIVERED')">
+    </app-kanban-column>
+  </div>
+</main>

@@ -1,0 +1,40 @@
+<div class="w-[20rem] flex flex-col bg-surface/50 rounded-lg border border-border-dark h-full shrink-0 max-h-full">
+
+  <!-- Column Header -->
+  <div
+    class="px-4 py-3 border-b border-border-dark flex items-center justify-between bg-surface rounded-t-lg z-10 sticky top-0">
+    <h3 class="font-semibold text-white m-0 text-base">{{ title }}</h3>
+    <span class="text-xs font-bold px-2 py-0.5 rounded-full" [ngClass]="{
+            'bg-border-dark text-text-muted': status !== 'PREPARING',
+            'bg-primary/20 text-primary': status === 'PREPARING'
+          }">
+      {{ orders.length }}
+    </span>
+  </div>
+
+  <!-- Column Body (Scrollable list of cards with DropList) -->
+  <div cdkDropList class="p-3 flex-1 overflow-y-auto column-scroll space-y-3 min-h-0 relative"
+    [cdkDropListData]="orders" (cdkDropListDropped)="onDrop($event)">
+
+    @if (orders.length > 0) {
+    @for (order of orders; track order.id) {
+    <app-order-card cdkDrag [order]="order" (actionClick)="onActionClick($event)"
+      (viewDetailsClick)="onViewDetailsClick($event)">
+
+      <!-- Drag Placeholder -->
+      <div *cdkDragPlaceholder
+        class="bg-surface border-2 border-dashed border-primary/50 rounded-md h-[130px] opacity-70"></div>
+    </app-order-card>
+    }
+    } @else {
+    <!-- Empty State -->
+    <div class="flex-1 flex items-center justify-center pt-10 pb-4 h-full pointer-events-none">
+      <div class="text-center text-text-muted flex flex-col items-center opacity-50">
+        <span class="material-symbols-outlined text-4xl mb-2">check_circle</span>
+        <p class="text-sm font-medium">No orders ready</p>
+      </div>
+    </div>
+    }
+  </div>
+
+</div>

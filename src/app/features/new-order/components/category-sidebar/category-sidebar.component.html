@@ -1,0 +1,16 @@
+<aside class="w-1/5 min-w-[200px] border-r border-border-dark bg-background flex flex-col overflow-y-auto p-4 gap-2 h-full">
+  <h2 class="text-xs uppercase font-semibold text-text-muted tracking-wider mb-2 px-3">Categories</h2>
+  
+  @for (category of store.categories(); track category.id) {
+    <button 
+      (click)="store.setActiveCategory(category.id)"
+      class="relative flex items-center justify-between px-3 py-3 rounded-md text-sm font-medium transition-colors cursor-pointer overflow-hidden"
+      [ngClass]="{
+        'bg-surface text-white before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-primary before:content-[\'\']': store.activeCategoryId() === category.id,
+        'hover:bg-surface-hover text-text-muted hover:text-white': store.activeCategoryId() !== category.id
+      }">
+      <span>{{ category.name }}</span>
+      <span class="bg-surface-hover text-xs px-2 py-0.5 rounded-full text-text-muted">{{ category.count }}</span>
+    </button>
+  }
+</aside>

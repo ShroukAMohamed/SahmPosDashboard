@@ -1,0 +1,22 @@
+<div class="flex flex-col gap-4">
+  <div class="flex items-center gap-2 border-b border-border-dark pb-3">
+    <span class="material-symbols-outlined text-primary">psychology</span>
+    <h3 class="text-base font-semibold m-0 text-white">AI Operational Insights</h3>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    @for (insight of insights(); track insight.id) {
+      <div class="bg-surface border border-border-dark rounded-md p-4 flex flex-col gap-2 hover:border-primary transition-colors">
+        <div class="flex items-center gap-2"
+             [ngClass]="{
+               'text-danger': insight.type === 'warning' || insight.type === 'error',
+               'text-primary': insight.type === 'info',
+               'text-success': insight.type === 'success'
+             }">
+          <span class="material-symbols-outlined text-[20px]">{{ insight.icon }}</span>
+          <span class="text-sm font-bold">{{ insight.title }}</span>
+        </div>
+        <p class="text-xs text-text-muted m-0 leading-relaxed">{{ insight.description }}</p>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,23 @@
+<button 
+  (click)="onAdd()"
+  class="flex flex-col w-full bg-surface border border-border-dark rounded-md overflow-hidden hover:border-primary hover:bg-surface-hover transition-all text-left group cursor-pointer">
+  
+  <div class="h-28 w-full bg-background relative overflow-hidden flex items-center justify-center">
+    @if (product().imageUrl) {
+      <img [src]="product().imageUrl" alt="" class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-300">
+    } @else {
+      <span class="material-symbols-outlined text-4xl text-text-muted opacity-50">fastfood</span>
+    }
+  </div>
+  
+  <div class="p-3 flex flex-col gap-1 w-full">
+    <span class="text-sm font-semibold truncate text-white">
+      @if (product().isSpicy) {
+        <span class="text-primary">Spicy</span>
+      }
+      {{ product().name.replace('Spicy ', '') }}
+    </span>
+    <span class="text-xs text-text-muted truncate">{{ product().description }}</span>
+    <span class="text-primary font-medium mt-1 text-sm">${{ product().price }}</span>
+  </div>
+</button>

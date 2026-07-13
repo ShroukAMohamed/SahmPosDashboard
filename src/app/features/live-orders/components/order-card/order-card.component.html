@@ -1,0 +1,60 @@
+<div class="bg-surface border border-border-dark rounded-md p-3 transition-colors group relative" [ngClass]="{
+    'hover:bg-surface-hover cursor-grab active:cursor-grabbing': order().status !== 'DELIVERED',
+    'opacity-75': order().status === 'DELIVERED',
+    'border-danger': isWarning
+  }">
+
+  <div class="flex justify-between items-start mb-2">
+    <div class="flex items-center gap-2">
+      <span class="font-bold text-base" [ngClass]="order().status === 'DELIVERED' ? 'text-text-muted' : 'text-white'">
+        {{ order().orderNumber }}
+      </span>
+      @if (order().urgency === 'URGENT' || order().urgency === 'CRITICAL') {
+      <span class="bg-danger/10 text-danger text-[10px] uppercase font-bold px-1.5 py-0.5 rounded">Urgent</span>
+      }
+    </div>
+
+    <div class="flex items-center gap-2">
+      @if (order().status === 'DELIVERED') {
+      <div class="flex items-center gap-1 text-success">
+        <span class="material-symbols-outlined text-[14px]">check</span>
+        <span class="text-sm font-semibold">Done</span>
+      </div>
+      } @else {
+      <div class="flex items-center gap-1"
+        [ngClass]="isWarning ? 'text-danger' : (order().status === 'RECEIVED' ? 'text-text-muted' : 'text-primary')">
+        <span class="material-symbols-outlined text-[14px]">timer</span>
+        <span class="text-sm font-semibold">{{ timeElapsed }}m</span>
+      </div>
+      }
+
+      <!-- 3 dots menu button -->
+      <button class="text-text-muted hover:text-white transition-colors flex items-center justify-center -mr-1"
+        (click)="onViewDetails($event)">
+        <span class="material-symbols-outlined text-[18px]">more_vert</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="text-sm text-text-muted flex items-center justify-between"
+    [ngClass]="order().status === 'DELIVERED' ? 'mb-2' : 'mb-3'">
+    <span class="truncate pr-2">{{ order().customerName }}</span>
+    <span class="shrink-0 bg-border-dark px-1.5 py-0.5 rounded text-xs">
+      {{ order().items.length }} {{ order().items.length === 1 ? 'Item' : 'Items' }}
+    </span>
+  </div>
+
+  @if (order().status !== 'DELIVERED') {
+  <button
+    class="w-full transition-colors text-sm font-semibold py-1.5 rounded-md flex items-center justify-center gap-2 border"
+    [ngClass]="{
+        'bg-primary/10 hover:bg-primary text-primary hover:text-background-dark border-primary': order().status === 'RECEIVED',
+        'bg-surface-hover hover:bg-border-dark text-white border-border-dark': order().status !== 'RECEIVED'
+      }" (click)="onActionClick()">
+    @if (order().status === 'PREPARING') {
+    <span class="material-symbols-outlined text-[16px]">done</span>
+    }
+    {{ actionLabel }}
+  </button>
+  }
+</div>

@@ -1,0 +1,48 @@
+<div class="h-full flex flex-col w-full overflow-hidden bg-background">
+  <!-- Top Filters Area -->
+  <app-order-filters></app-order-filters>
+
+  <!-- Main Content Area -->
+  <div class="flex-1 flex min-h-0 relative">
+    
+    <!-- Loading State -->
+    @if (store.isLoading()) {
+      <main class="flex-1 overflow-x-auto p-6 bg-background h-full w-full">
+        <div class="flex gap-6 h-full min-w-max pb-4">
+          <div class="w-[20rem] h-full shrink-0"><app-panel-skeleton></app-panel-skeleton></div>
+          <div class="w-[20rem] h-full shrink-0"><app-panel-skeleton></app-panel-skeleton></div>
+          <div class="w-[20rem] h-full shrink-0"><app-panel-skeleton></app-panel-skeleton></div>
+          <div class="w-[20rem] h-full shrink-0"><app-panel-skeleton></app-panel-skeleton></div>
+        </div>
+      </main>
+    }
+
+    <!-- Error State -->
+    @if (store.error()) {
+      <div class="absolute inset-0 z-40 flex flex-col items-center justify-center bg-background/90 text-center p-6">
+        <span class="material-symbols-outlined text-danger text-5xl mb-4">error</span>
+        <h3 class="text-white text-lg font-bold mb-2">Failed to load orders</h3>
+        <p class="text-text-muted mb-6">{{ store.error() }}</p>
+        <button 
+          class="bg-primary text-background font-semibold px-6 py-2 rounded transition-colors hover:bg-primary/90"
+          (click)="store.loadOrders()">
+          Retry
+        </button>
+      </div>
+    }
+
+    <!-- Kanban Board -->
+    @if (!store.isLoading()) {
+      <div class="flex-1 overflow-hidden">
+        <app-kanban-board></app-kanban-board>
+      </div>
+    }
+
+    <!-- AI Assistant Drawer -->
+    <app-ai-assistant-panel 
+      [order]="store.selectedOrder()" 
+      (close)="store.selectOrder(null)">
+    </app-ai-assistant-panel>
+
+  </div>
+</div>
