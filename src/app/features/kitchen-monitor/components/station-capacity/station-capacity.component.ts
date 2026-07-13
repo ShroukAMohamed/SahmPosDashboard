@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, input, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Station } from '../../state/kitchen-monitor.store';
+import { KitchenStation } from '../../interfaces/kitchen-station.interface';
 
 @Component({
   selector: 'app-station-capacity',
@@ -11,7 +11,7 @@ import { Station } from '../../state/kitchen-monitor.store';
   styleUrls: ['./station-capacity.component.scss']
 })
 export class StationCapacityComponent {
-  station = input.required<Station>();
+  station = input.required<KitchenStation>();
 
   percentage = computed(() => {
     const st = this.station();
@@ -21,8 +21,8 @@ export class StationCapacityComponent {
 
   statusLabel = computed(() => {
     const st = this.station();
-    if (st.status === 'critical') return `Critical Load (${this.percentage()}%)`;
-    if (st.status === 'warning') return `High Load (${this.percentage()}%)`;
+    if (st.status === 'OVERLOADED') return `Critical Load (${this.percentage()}%)`;
+    if (st.status === 'WARNING') return `High Load (${this.percentage()}%)`;
     if (st.currentLoad < st.maxCapacity * 0.4) return `Low Load (${this.percentage()}%)`;
     return `Normal Capacity (${this.percentage()}%)`;
   });

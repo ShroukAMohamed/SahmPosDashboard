@@ -22,8 +22,10 @@ export class AiAssistantPanelComponent {
   subtotal = computed(() => {
     const currentOrder = this.order();
     if (!currentOrder) return 0;
-    // Assuming each item has a placeholder price of $8 for UI if no price exists
-    return currentOrder.items.length * 8.5; 
+    
+    return currentOrder.items.reduce((sum, item) => {
+      return sum + (item.totalPrice || item.quantity * 8.5);
+    }, 0);
   });
   
   tax = computed(() => this.subtotal() * 0.08);

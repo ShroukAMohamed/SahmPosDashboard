@@ -18,6 +18,7 @@ export class LiveOrdersPageComponent implements OnInit {
   store = inject(LiveOrdersStore);
 
   ngOnInit() {
+    this.store.updateFilters({ searchQuery: '' });
     this.store.loadOrders();
   }
 }

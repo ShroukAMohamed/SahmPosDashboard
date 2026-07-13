@@ -1,21 +1,9 @@
-import { Injectable, signal, computed } from '@angular/core';
-
-export interface Station {
-  id: string;
-  name: string;
-  icon: string;
-  currentLoad: number;
-  maxCapacity: number;
-  status: 'normal' | 'warning' | 'critical';
-  pendingItems: PendingItem[];
-}
-
-export interface PendingItem {
-  name: string;
-  count: number;
-  time: string;
-  isWarning?: boolean;
-}
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { LiveOrdersStore } from '../../live-orders/state/live-orders.store';
+import { KitchenStation, PendingItem } from '../interfaces/kitchen-station.interface';
+import { KitchenEvent } from '../interfaces/kitchen-event.interface';
+import { KitchenMonitorService } from '../services/kitchen-monitor.service';
+import { KitchenStatus } from '../types/kitchen-status.type';
 
 export interface AIInsight {
   id: string;
@@ -37,121 +25,178 @@ export interface Alert {
 
 @Injectable({ providedIn: 'root' })
 export class KitchenMonitorStore {
-  // State
-  private readonly _stations = signal<Station[]>([
-    {
-      id: 'st-1',
-      name: 'Grill Station',
-      icon: 'local_fire_department',
-      currentLoad: 12,
-      maxCapacity: 20,
-      status: 'normal',
-      pendingItems: [
-        { count: 4, name: 'Classic Burger', time: '4m' },
-        { count: 6, name: 'Chicken Breast', time: '8m' },
-        { count: 2, name: 'Veggie Patty', time: '2m' }
-      ]
-    },
-    {
-      id: 'st-2',
-      name: 'Fryer Station',
-      icon: 'opacity',
-      currentLoad: 18,
-      maxCapacity: 20,
-      status: 'critical',
-      pendingItems: [
-        { count: 10, name: 'L Fries', time: 'Waiting', isWarning: true },
-        { count: 5, name: 'Onion Rings', time: '2m' },
-        { count: 3, name: 'Chicken Tenders', time: '3m' }
-      ]
-    },
-    {
-      id: 'st-3',
-      name: 'Assembly',
-      icon: 'view_in_ar',
-      currentLoad: 5,
-      maxCapacity: 15,
-      status: 'normal',
-      pendingItems: [
-        { count: 5, name: 'Mixed Orders', time: 'Ready' }
-      ]
-    }
-  ]);
+  private liveOrdersStore = inject(LiveOrdersStore);
+  private kitchenService = inject(KitchenMonitorService);
 
-  private readonly _insights = signal<AIInsight[]>([
-    {
-      id: 'in-1',
-      type: 'warning',
-      icon: 'warning',
-      title: 'Kitchen Overload Warning',
-      description: 'Potential capacity breach predicted in 10 minutes based on current order velocity.'
-    },
-    {
-      id: 'in-2',
-      type: 'info',
-      icon: 'timer',
-      title: 'Delayed Order Prediction',
-      description: '4 orders are predicted to exceed SLA within the next 15 minutes.'
-    },
-    {
-      id: 'in-3',
-      type: 'success',
-      icon: 'priority_high',
-      title: 'Priority Change Recommendation',
-      description: 'Move Order #1042 to top priority to optimize delivery window.'
-    },
-    {
-      id: 'in-4',
-      type: 'error',
-      icon: 'error',
-      title: 'Bottleneck Detection',
-      description: 'Fryer station identified as current primary bottleneck. Consider rerouting fried items.'
-    }
-  ]);
+  // We can track acknowledged alerts manually
+  private readonly _acknowledgedAlertIds = signal<Set<string>>(new Set());
+  private readonly _isSynced = signal<boolean>(true);
 
-  private readonly _alerts = signal<Alert[]>([
-    {
-      id: 'al-1',
-      type: 'danger',
-      title: 'Fryer Bottleneck',
-      timeAgo: 'Just now',
-      description: 'Capacity exceeded (90%). Expect 5m delays on fried items.',
-      orderId: '1040',
-      acknowledged: false
-    },
-    {
-      id: 'al-2',
-      type: 'primary',
-      title: 'Grill Approaching Limit',
-      timeAgo: '4m ago',
-      description: 'Load steadily increasing. Currently at 60% capacity.',
-      orderId: '1038',
-      acknowledged: false
-    },
-    {
-      id: 'al-3',
-      type: 'success',
-      title: 'Assembly Cleared',
-      timeAgo: '12m ago',
-      description: 'Previous backlog at assembly station has been resolved.',
-      orderId: '1035',
-      acknowledged: false
-    }
-  ]);
+  readonly isLoading = this.liveOrdersStore.isLoading;
+  readonly error = this.liveOrdersStore.error;
+  readonly isSynced = this._isSynced.asReadonly();
 
-  // Public getters
-  readonly stations = this._stations.asReadonly();
-  readonly insights = this._insights.asReadonly();
-  readonly alerts = this._alerts.asReadonly();
+  // Base constants for stations mapping
+  private stationConfigs = [
+    { id: 'st-1', name: 'Grill Station', icon: 'local_fire_department', maxCapacity: 20 },
+    { id: 'st-2', name: 'Fryer Station', icon: 'opacity', maxCapacity: 20 },
+    { id: 'st-3', name: 'Assembly', icon: 'view_in_ar', maxCapacity: 15 }
+  ];
+
+  // Derive stations workload from active orders
+  readonly stations = computed<KitchenStation[]>(() => {
+    // Only care about PREPARING orders for workload calculation
+    const activeOrders = this.liveOrdersStore.preparingOrders();
+    
+    // We map product keywords or categories to stations.
+    // For simplicity:
+    // "Burger", "Patty" -> Grill
+    // "Fries", "Rings", "Crispy" -> Fryer
+    // Everything else goes to Assembly
+
+    const stationsData: Record<string, { currentLoad: number, pending: PendingItem[] }> = {
+      'st-1': { currentLoad: 0, pending: [] },
+      'st-2': { currentLoad: 0, pending: [] },
+      'st-3': { currentLoad: 0, pending: [] }
+    };
+
+    activeOrders.forEach(order => {
+      order.items.forEach(item => {
+        const name = item.name.toLowerCase();
+        let sId = 'st-3'; // Default Assembly
+        
+        if (name.includes('burger') || name.includes('patty')) sId = 'st-1';
+        if (name.includes('fries') || name.includes('rings') || name.includes('crispy')) sId = 'st-2';
+
+        stationsData[sId].currentLoad += item.quantity;
+        stationsData[sId].pending.push({
+          name: item.name,
+          count: item.quantity,
+          time: 'Active',
+          isWarning: order.urgency === 'CRITICAL' || order.urgency === 'URGENT'
+        });
+      });
+    });
+
+    return this.stationConfigs.map(config => {
+      const data = stationsData[config.id];
+      const loadPercentage = (data.currentLoad / config.maxCapacity) * 100;
+      let status: KitchenStatus = 'NORMAL';
+      if (loadPercentage > 85) status = 'OVERLOADED';
+      else if (loadPercentage >= 60) status = 'WARNING';
+
+      return {
+        ...config,
+        currentLoad: data.currentLoad,
+        status,
+        pendingItems: data.pending.slice(0, 5) // Show top 5 pending
+      };
+    });
+  });
+
+  // AI Insights derived from stations
+  readonly insights = computed<AIInsight[]>(() => {
+    const sts = this.stations();
+    const insightsList: AIInsight[] = [];
+    
+    const overloaded = sts.filter(s => s.status === 'OVERLOADED');
+    if (overloaded.length > 0) {
+      insightsList.push({
+        id: 'in-overload',
+        type: 'error',
+        icon: 'error',
+        title: 'Bottleneck Detection',
+        description: `${overloaded.map(s => s.name).join(', ')} identified as current bottleneck.`
+      });
+    }
+
+    const warnings = sts.filter(s => s.status === 'WARNING');
+    if (warnings.length > 0) {
+      insightsList.push({
+        id: 'in-warning',
+        type: 'warning',
+        icon: 'warning',
+        title: 'Kitchen Load Warning',
+        description: `${warnings.map(s => s.name).join(', ')} is approaching max capacity.`
+      });
+    }
+
+    const urgentOrders = this.liveOrdersStore.orders().filter(o => o.status === 'RECEIVED' && o.urgency === 'CRITICAL');
+    if (urgentOrders.length > 0) {
+      insightsList.push({
+        id: 'in-priority',
+        type: 'info',
+        icon: 'priority_high',
+        title: 'Priority Change Recommendation',
+        description: `Move Order ${urgentOrders[0].orderNumber} to PREPARING immediately.`
+      });
+    }
+
+    if (insightsList.length === 0) {
+      insightsList.push({
+        id: 'in-success',
+        type: 'success',
+        icon: 'check_circle',
+        title: 'Optimal Operations',
+        description: 'All kitchen stations are operating within normal parameters.'
+      });
+    }
+
+    return insightsList;
+  });
+
+  // Alerts computed from operational events and station overloads
+  readonly alerts = computed<Alert[]>(() => {
+    const sts = this.stations();
+    const generatedAlerts: Alert[] = [];
+    const ackIds = this._acknowledgedAlertIds();
+
+    sts.filter(s => s.status === 'OVERLOADED').forEach(s => {
+      const aId = `alert-overload-${s.id}`;
+      generatedAlerts.push({
+        id: aId,
+        type: 'danger',
+        title: `${s.name} Capacity Exceeded`,
+        timeAgo: 'Just now',
+        description: 'Expect delays on affected items.',
+        acknowledged: ackIds.has(aId)
+      });
+    });
+
+    sts.filter(s => s.status === 'WARNING').forEach(s => {
+      const aId = `alert-warning-${s.id}`;
+      generatedAlerts.push({
+        id: aId,
+        type: 'primary',
+        title: `${s.name} Approaching Limit`,
+        timeAgo: 'Just now',
+        description: `Load steadily increasing. Currently at ${Math.round((s.currentLoad / s.maxCapacity) * 100)}% capacity.`,
+        acknowledged: ackIds.has(aId)
+      });
+    });
+
+    return generatedAlerts;
+  });
 
   readonly activeAlertsCount = computed(() => 
-    this._alerts().filter(a => !a.acknowledged).length
+    this.alerts().filter(a => !a.acknowledged).length
   );
 
   // Actions
   acknowledgeAlert(id: string) {
-    this._alerts.update(alerts => 
-      alerts.map(a => a.id === id ? { ...a, acknowledged: true } : a)
-    );
+    this._acknowledgedAlertIds.update(set => {
+      const newSet = new Set(set);
+      newSet.add(id);
+      return newSet;
+    });
+  }
+
+  // Real-time Event Subscription setup (could be initialized via constructor)
+  constructor() {
+    this.kitchenService.getOperationalEvents().subscribe(event => {
+      // In a real app, we might push these events into a log or create temporary alerts.
+      // We will rely on derived state for now as requested.
+      console.log('Received simulated operational event:', event);
+    });
   }
 }

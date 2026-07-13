@@ -28,6 +28,8 @@ export class CartPanelComponent {
       productId: cartItem.product.id,
       name: cartItem.product.name,
       quantity: cartItem.quantity,
+      unitPrice: cartItem.product.price,
+      totalPrice: cartItem.product.price * cartItem.quantity,
       modifiers: cartItem.modifiers ? cartItem.modifiers.map(m => m.name) : []
     }));
 

@@ -1,33 +1,33 @@
 <div 
-  class="bg-surface border rounded-md p-4 flex flex-col gap-3 group relative cursor-default transition-colors"
+  class="bg-surface border rounded-md p-5 min-h-[110px] justify-center flex flex-col gap-3 group relative cursor-default transition-colors"
   [ngClass]="{
-    'border-danger shadow-[0_0_15px_rgba(239,68,68,0.1)]': station().status === 'critical',
-    'border-border-dark hover:border-primary': station().status !== 'critical'
+    'border-danger shadow-[0_0_15px_rgba(239,68,68,0.1)]': station().status === 'OVERLOADED',
+    'border-border-dark hover:border-primary': station().status !== 'OVERLOADED'
   }">
   
   <div class="flex justify-between items-start">
     <div class="flex items-center gap-2">
       <span class="material-symbols-outlined" 
-            [ngClass]="station().status === 'critical' ? 'text-danger' : (station().status === 'warning' ? 'text-primary' : 'text-text-muted')">
+            [ngClass]="station().status === 'OVERLOADED' ? 'text-danger' : (station().status === 'WARNING' ? 'text-primary' : 'text-text-muted')">
         {{ station().icon }}
       </span>
       <h3 class="text-base font-semibold m-0 text-white">{{ station().name }}</h3>
     </div>
     <span class="text-sm font-semibold"
-          [ngClass]="station().status === 'critical' ? 'text-danger' : 'text-white'">
+          [ngClass]="station().status === 'OVERLOADED' ? 'text-danger' : 'text-white'">
       {{ station().currentLoad }}/{{ station().maxCapacity }}
     </span>
   </div>
   
   <div class="w-full h-2 bg-surface-hover rounded-full overflow-hidden">
     <div class="h-full rounded-full transition-all duration-500" 
-         [ngClass]="station().status === 'critical' ? 'bg-danger' : (station().status === 'warning' ? 'bg-primary' : 'bg-success')"
+         [ngClass]="station().status === 'OVERLOADED' ? 'bg-danger' : (station().status === 'WARNING' ? 'bg-primary' : 'bg-success')"
          [style.width.%]="percentage()"></div>
   </div>
   
   <p class="text-xs font-medium m-0 flex items-center gap-1"
-     [ngClass]="station().status === 'critical' ? 'text-danger' : 'text-text-muted'">
-    @if (station().status === 'critical') {
+     [ngClass]="station().status === 'OVERLOADED' ? 'text-danger' : 'text-text-muted'">
+    @if (station().status === 'OVERLOADED') {
       <span class="material-symbols-outlined text-[14px]">warning</span>
     }
     {{ statusLabel() }}

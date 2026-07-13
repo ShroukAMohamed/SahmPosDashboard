@@ -21,6 +21,7 @@ export class NewOrderPageComponent implements OnInit {
   private store = inject(NewOrderStore);
 
   ngOnInit() {
+    this.store.setSearchQuery('');
     this.store.loadProducts();
   }
 }

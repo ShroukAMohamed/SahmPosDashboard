@@ -48,7 +48,7 @@
   <button
     class="w-full transition-colors text-sm font-semibold py-1.5 rounded-md flex items-center justify-center gap-2 border"
     [ngClass]="{
-        'bg-primary/10 hover:bg-primary text-primary hover:text-background-dark border-primary': order().status === 'RECEIVED',
+        'bg-primary/10 hover:bg-primary/30 text-primary border-primary': order().status === 'RECEIVED',
         'bg-surface-hover hover:bg-border-dark text-white border-border-dark': order().status !== 'RECEIVED'
       }" (click)="onActionClick()">
     @if (order().status === 'PREPARING') {
