@@ -105,7 +105,6 @@ export class LiveOrdersStore {
   readonly deliveredOrders = computed(() => this.filteredOrders().filter(o => o.status === 'DELIVERED'));
 
   // Actions
-  // Actions
   loadOrders() {
     this._isLoading.set(true);
     this._error.set(null);
@@ -166,8 +165,6 @@ export class LiveOrdersStore {
       orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o)
     );
 
-
-
     const payload = {
       orderId,
       newStatus,
@@ -192,8 +189,6 @@ export class LiveOrdersStore {
   addOrder(order: Order) {
     // Optimistic Update: Immediately add order to Signal state
     this._orders.update(orders => [order, ...orders]);
-    console.log('Network status:', this.networkService.isOnline());
-
 
     if (!this.networkService.isOnline()) {
       // OFFLINE: Queue CREATE_ORDER action, do not rollback, keep visible

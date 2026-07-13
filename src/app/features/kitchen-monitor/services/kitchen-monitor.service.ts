@@ -1,11 +1,10 @@
 import { Injectable } from '@angular/core';
-import { Observable, timer, Subject } from 'rxjs';
+import { Observable, timer } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { KitchenEvent } from '../interfaces/kitchen-event.interface';
 
 @Injectable({ providedIn: 'root' })
 export class KitchenMonitorService {
-  private customEvents = new Subject<KitchenEvent>();
 
   // Simulate a stream of operational events
   getOperationalEvents(): Observable<KitchenEvent> {
@@ -30,9 +29,5 @@ export class KitchenMonitorService {
         return events[val % events.length];
       })
     );
-  }
-
-  emitCustomEvent(event: KitchenEvent) {
-    this.customEvents.next(event);
   }
 }

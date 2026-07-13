@@ -1,4 +1,4 @@
-import { Injectable, signal, computed, inject, effect } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { LiveOrdersStore } from '../../live-orders/state/live-orders.store';
 import { KitchenStation, PendingItem } from '../interfaces/kitchen-station.interface';
 import { KitchenEvent } from '../interfaces/kitchen-event.interface';
@@ -34,7 +34,6 @@ export class KitchenMonitorStore {
 
   // We can track acknowledged alerts manually
   private readonly _acknowledgedAlertIds = signal<Set<string>>(new Set());
-  private previouslyOverloaded = new Set<string>();
 
   readonly isLoading = this.liveOrdersStore.isLoading;
   readonly error = this.liveOrdersStore.error;
@@ -192,28 +191,6 @@ export class KitchenMonitorStore {
       const newSet = new Set(set);
       newSet.add(id);
       return newSet;
-    });
-  }
-
-  // Real-time Event Subscription setup (could be initialized via constructor)
-  constructor() {
-    this.kitchenService.getOperationalEvents().subscribe(event => {
-      // In a real app, we might push these events into a log or create temporary alerts.
-      // We will rely on derived state for now as requested.
-      console.log('Received simulated operational event:', event);
-    });
-
-    effect(() => {
-      const currentStations = this.stations();
-      currentStations.forEach(station => {
-        if (station.status === 'OVERLOADED') {
-          if (!this.previouslyOverloaded.has(station.id)) {
-            this.previouslyOverloaded.add(station.id);
-          }
-        } else {
-          this.previouslyOverloaded.delete(station.id);
-        }
-      });
     });
   }
 }

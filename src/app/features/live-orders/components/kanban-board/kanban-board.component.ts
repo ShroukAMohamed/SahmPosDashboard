@@ -11,7 +11,7 @@ import { OrderStatus } from '../../../../core/types/order-status.type';
   standalone: true,
   imports: [KanbanColumnComponent, DragDropModule],
   templateUrl: './kanban-board.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['./kanban-board.component.scss']
 })
 export class KanbanBoardComponent {

@@ -1,16 +1,13 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, Observable, Subject, timer, Subscription } from 'rxjs';
-import { map, delay, filter } from 'rxjs/operators';
+import { BehaviorSubject, Subject, timer, Subscription } from 'rxjs';
 import { Order } from '../../../core/models/order.interface';
 import { OrderStatus } from '../../../core/types/order-status.type';
 import { MockApiService } from '../../../core/mock-api/mock-api.service';
+import { OrderStatusUpdate } from '../../../core/models/order-status-update.interface';
 
-export type RealtimeEventType = 'ORDER_CREATED' | 'ORDER_STATUS_CHANGED';
-
-export interface RealtimeEvent {
-  type: RealtimeEventType;
-  payload: any;
-}
+export type RealtimeEvent = 
+  | { type: 'ORDER_CREATED'; payload: Order }
+  | { type: 'ORDER_STATUS_CHANGED'; payload: OrderStatusUpdate };
 
 export type ConnectionState = 'CONNECTING' | 'CONNECTED' | 'DISCONNECTED' | 'ERROR';
 
@@ -97,6 +94,7 @@ export class LiveOrdersRealtimeService {
           payload: {
             orderId: randomId,
             newStatus: newStatus,
+            previousStatus: 'RECEIVED',
             updatedAt: new Date().toISOString()
           }
         });

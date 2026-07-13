@@ -1,6 +1,6 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { MockApiService } from '../mock-api/mock-api.service';
-import { catchError, map, of, Subscription, interval, startWith, switchMap } from 'rxjs';
+import { catchError, map, of, Subscription } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class NetworkService {

@@ -10,7 +10,7 @@ import { OrderCardComponent } from '../order-card/order-card.component';
   standalone: true,
   imports: [CommonModule, OrderCardComponent, DragDropModule],
   templateUrl: './kanban-column.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['./kanban-column.component.scss']
 })
 export class KanbanColumnComponent {

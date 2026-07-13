@@ -2,12 +2,17 @@ import { Injectable, inject, effect } from '@angular/core';
 import { NetworkService } from './network.service';
 import { LiveOrdersService } from '../../features/live-orders/services/live-orders.service';
 
-export interface SyncAction {
+import { Order } from '../models/order.interface';
+import { OrderStatusUpdate } from '../models/order-status-update.interface';
+
+export type SyncActionPayload =
+  | { type: 'CREATE_ORDER'; payload: Order }
+  | { type: 'UPDATE_ORDER_STATUS'; payload: OrderStatusUpdate };
+
+export type SyncAction = {
   id: string;
-  type: 'CREATE_ORDER' | 'UPDATE_ORDER_STATUS';
-  payload: any;
   timestamp: number;
-}
+} & SyncActionPayload;
 
 @Injectable({ providedIn: 'root' })
 export class OfflineSyncService {
@@ -61,7 +66,7 @@ export class OfflineSyncService {
     return this.dbPromise;
   }
 
-  async queueAction(action: Omit<SyncAction, 'id' | 'timestamp'>): Promise<SyncAction> {
+  async queueAction(action: SyncActionPayload): Promise<SyncAction> {
     if (!this.db) await this.initDb();
     
     // Prevent Duplicates
@@ -70,7 +75,7 @@ export class OfflineSyncService {
     let existingActionIdToRemove: string | null = null;
 
     if (action.type === 'UPDATE_ORDER_STATUS') {
-      const existing = existingQueue.find(a =>
+      const existing = existingQueue.find((a): a is Extract<SyncAction, { type: 'UPDATE_ORDER_STATUS' }> =>
         a.type === 'UPDATE_ORDER_STATUS' &&
         a.payload.orderId === action.payload.orderId
       );
@@ -82,7 +87,7 @@ export class OfflineSyncService {
         }
       }
     } else if (action.type === 'CREATE_ORDER') {
-      const existing = existingQueue.find(a =>
+      const existing = existingQueue.find((a): a is Extract<SyncAction, { type: 'CREATE_ORDER' }> =>
         a.type === 'CREATE_ORDER' &&
         a.payload.id === action.payload.id
       );

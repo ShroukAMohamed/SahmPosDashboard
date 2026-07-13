@@ -8,7 +8,7 @@ import { TopNavigationComponent } from '../top-navigation/top-navigation.compone
   standalone: true,
   imports: [RouterModule, TopNavigationComponent],
   templateUrl: './app-shell.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['./app-shell.component.scss']
 })
 export class AppShellComponent {

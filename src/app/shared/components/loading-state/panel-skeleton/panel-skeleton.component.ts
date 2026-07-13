@@ -6,7 +6,7 @@ import { Skeleton } from 'primeng/skeleton';
   standalone: true,
   imports: [Skeleton],
   templateUrl: './panel-skeleton.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './panel-skeleton.component.scss'
 })
 export class PanelSkeletonComponent {

@@ -11,7 +11,7 @@ import { PanelSkeletonComponent } from '../../../../shared/components/loading-st
   standalone: true,
   imports: [OrderFiltersComponent, KanbanBoardComponent, AiAssistantPanelComponent, PanelSkeletonComponent],
   templateUrl: './live-orders-page.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['./live-orders-page.component.scss']
 })
 export class LiveOrdersPageComponent implements OnInit {

@@ -8,12 +8,12 @@ import { NetworkService } from '../../core/services/network.service';
   standalone: true,
   imports: [SyncIndicatorComponent, RouterModule],
   templateUrl: './top-navigation.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['./top-navigation.component.scss']
 })
 export class TopNavigationComponent implements OnInit, OnDestroy {
   networkService = inject(NetworkService);
-  currentTime: string = '';
+  currentTime = signal<string>('');
   isMenuOpen = signal(false);
 
   private timer: any;
@@ -31,6 +31,6 @@ export class TopNavigationComponent implements OnInit, OnDestroy {
 
   private updateClock() {
     const now = new Date();
-    this.currentTime = now.toLocaleTimeString('en-US', { hour12: false });
+    this.currentTime.set(now.toLocaleTimeString('en-US', { hour12: false }));
   }
 }

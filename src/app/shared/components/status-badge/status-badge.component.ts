@@ -9,7 +9,7 @@ export type StatusBadgeSize = 'sm' | 'md';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './status-badge.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['./status-badge.component.scss']
 })
 export class StatusBadgeComponent {

@@ -6,7 +6,7 @@ import { Skeleton } from 'primeng/skeleton';
   standalone: true,
   imports: [Skeleton],
   templateUrl: './product-card-skeleton.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './product-card-skeleton.component.scss'
 })
 export class ProductCardSkeletonComponent {
