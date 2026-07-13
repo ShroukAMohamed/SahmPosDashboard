@@ -28,6 +28,9 @@ jobs:
         # The base-href must match the GitHub repository name for GitHub Pages
         run: npx ng build --configuration production --base-href /SahmPosDashboard/
 
+      - name: Bypass Jekyll
+        run: touch ./dist/sahm-pos-dashboard/browser/.nojekyll
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
