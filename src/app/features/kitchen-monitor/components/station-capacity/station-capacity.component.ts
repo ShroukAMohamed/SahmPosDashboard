@@ -11,15 +11,15 @@ import { KitchenStation } from '../../interfaces/kitchen-station.interface';
   styleUrls: ['./station-capacity.component.scss']
 })
 export class StationCapacityComponent {
-  station = input.required<KitchenStation>();
+  public station = input.required<KitchenStation>();
 
-  percentage = computed(() => {
+  public percentage = computed(() => {
     const st = this.station();
     const ratio = Math.round((st.currentLoad / st.maxCapacity) * 100);
     return Math.min(100, Math.max(0, ratio));
   });
 
-  statusLabel = computed(() => {
+  public statusLabel = computed(() => {
     const st = this.station();
     if (st.status === 'OVERLOADED') return `Critical Load (${this.percentage()}%)`;
     if (st.status === 'WARNING') return `High Load (${this.percentage()}%)`;

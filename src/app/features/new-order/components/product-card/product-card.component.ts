@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Product } from '../../../../core/models/product.model';
+import { Product } from '../../../../core/models/product.interface';
 import { HighlightPipe } from '../../../../shared/pipes/highlight.pipe';
 
 @Component({

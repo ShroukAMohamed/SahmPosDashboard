@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, delay, tap } from 'rxjs';
-import { Product } from '../models/product.model';
-import { Category } from '../models/category.model';
+import { Product } from '../models/product.interface';
+import { Category } from '../models/category.interface';
 import { Order } from '../models/order.interface';
 import { ProductCategory } from '../enums/product-category.enum';
 import { OrderStatusUpdate } from '../models/order-status-update.interface';
@@ -156,11 +156,11 @@ export class MockApiService {
   ];
 
   private categories: Category[] = [
-    { id: ProductCategory.COMBO, name: 'Combos', count: 4 },
-    { id: ProductCategory.BURGER, name: 'Burgers', count: 4 },
-    { id: ProductCategory.SIDE, name: 'Sides', count: 3 },
-    { id: ProductCategory.BEVERAGE, name: 'Beverages', count: 3 },
-    { id: ProductCategory.DESSERT, name: 'Desserts', count: 2 }
+    { categoryId: ProductCategory.COMBO, name: 'Combos', count: 4 },
+    { categoryId: ProductCategory.BURGER, name: 'Burgers', count: 4 },
+    { categoryId: ProductCategory.SIDE, name: 'Sides', count: 3 },
+    { categoryId: ProductCategory.BEVERAGE, name: 'Beverages', count: 3 },
+    { categoryId: ProductCategory.DESSERT, name: 'Desserts', count: 2 }
   ];
 
   private orders: Order[] = [

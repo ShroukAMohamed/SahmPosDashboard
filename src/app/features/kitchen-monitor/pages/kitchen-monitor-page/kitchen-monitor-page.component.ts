@@ -1,6 +1,7 @@
-import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { KitchenMonitorStore } from '../../state/kitchen-monitor.store';
+import { LiveOrdersStore } from '../../../live-orders/state/live-orders.store';
 import { StationCapacityComponent } from '../../components/station-capacity/station-capacity.component';
 import { AiInsightsGridComponent } from '../../components/ai-insights-grid/ai-insights-grid.component';
 import { ActiveAlertsComponent } from '../../components/active-alerts/active-alerts.component';
@@ -22,6 +23,11 @@ import { PanelSkeletonComponent } from '../../../../shared/components/loading-st
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['./kitchen-monitor-page.component.scss']
 })
-export class KitchenMonitorPageComponent {
+export class KitchenMonitorPageComponent implements OnInit {
   store = inject(KitchenMonitorStore);
+  private liveOrdersStore = inject(LiveOrdersStore);
+
+  ngOnInit() {
+    this.liveOrdersStore.loadOrders();
+  }
 }

@@ -7,6 +7,7 @@ import { OrderStatus } from '../../../core/types/order-status.type';
 import { OrderChannel } from '../../../core/types/order-channel.type';
 import { NetworkService } from '../../../core/services/network.service';
 import { OfflineSyncService } from '../../../core/services/offline-sync.service';
+import { MessageService } from 'primeng/api';
 
 
 export interface OrderFilterCriteria {
@@ -20,6 +21,7 @@ export class LiveOrdersStore {
   private realtimeService = inject(LiveOrdersRealtimeService);
   private networkService = inject(NetworkService);
   private offlineSync = inject(OfflineSyncService);
+  private messageService = inject(MessageService);
 
   private destroyRef = inject(DestroyRef);
 
@@ -45,7 +47,7 @@ export class LiveOrdersStore {
           }
         } else if (event.type === 'ORDER_STATUS_CHANGED') {
           const { orderId, newStatus } = event.payload;
-          this._orders.update(orders => 
+          this._orders.update(orders =>
             orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o)
           );
         }
@@ -60,6 +62,7 @@ export class LiveOrdersStore {
   private readonly _orders = signal<Order[]>([]);
   private readonly _isLoading = signal<boolean>(false);
   private readonly _error = signal<string | null>(null);
+  private readonly _isInitialized = signal<boolean>(false);
   private readonly _realtimeConnectionState = signal<'CONNECTING' | 'CONNECTED' | 'DISCONNECTED' | 'ERROR'>('DISCONNECTED');
 
   // Filter State Signals
@@ -75,6 +78,7 @@ export class LiveOrdersStore {
   readonly orders = this._orders.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
+  readonly isInitialized = this._isInitialized.asReadonly();
   readonly filters = this._filters.asReadonly();
   readonly selectedOrderId = this._selectedOrderId.asReadonly();
   readonly realtimeConnectionState = this._realtimeConnectionState.asReadonly();
@@ -131,6 +135,7 @@ export class LiveOrdersStore {
           }
 
           this._orders.set(orders);
+          this._isInitialized.set(true);
         } else {
           this._error.set(response.error || 'Failed to load orders');
         }
@@ -179,6 +184,16 @@ export class LiveOrdersStore {
 
     // API Call
     this.liveOrdersService.updateOrderStatus(payload).subscribe({
+      next: (res) => {
+        if (!res.success) {
+          console.error('API failed to move order:', res.error);
+          this.messageService.add({ severity: 'error', summary: 'Update Failed', detail: res.error || 'Failed to update order status' });
+          // Rollback optimistic update
+          this._orders.update(orders =>
+            orders.map(o => o.id === orderId ? { ...o, status: previousStatus } : o)
+          );
+        }
+      },
       error: () => {
         console.warn('Failed to move order, queuing action for offline sync');
         this.offlineSync.queueAction({ type: 'UPDATE_ORDER_STATUS', payload });
@@ -206,6 +221,7 @@ export class LiveOrdersStore {
           // If API logical fails: Rollback optimistic order and log error
           this._orders.update(orders => orders.filter(o => o.id !== order.id));
           console.error('Failed to create order on server', res.error);
+          this.messageService.add({ severity: 'error', summary: 'Order Failed', detail: res.error || 'Failed to create order on server' });
         }
       },
       error: (err) => {

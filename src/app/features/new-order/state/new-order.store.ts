@@ -1,6 +1,6 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
-import { Product } from '../../../core/models/product.model';
-import { Category } from '../../../core/models/category.model';
+import { Product } from '../../../core/models/product.interface';
+import { Category } from '../../../core/models/category.interface';
 import { ProductCategory } from '../../../core/enums/product-category.enum';
 import { NewOrderService } from '../services/new-order.service';
 import { MessageService } from 'primeng/api';
@@ -24,7 +24,7 @@ export class NewOrderStore {
   private readonly _activeCategoryId = signal<ProductCategory>(ProductCategory.COMBO);
   private readonly _searchQuery = signal<string>('');
   private readonly _cart = signal<CartItem[]>([]);
-  
+
   private readonly _isLoading = signal<boolean>(false);
   private readonly _isSubmitting = signal<boolean>(false);
   private readonly _error = signal<string | null>(null);
@@ -41,7 +41,7 @@ export class NewOrderStore {
   readonly filteredProducts = computed(() => {
     const q = this.searchQuery().toLowerCase();
     const catId = this.activeCategoryId();
-    
+
     return this._products().filter(p => {
       const matchCat = p.category === catId;
       const matchSearch = p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q);
@@ -70,7 +70,7 @@ export class NewOrderStore {
           this._products.set(res.data.products);
           this._categories.set(res.data.categories);
           if (res.data.categories.length > 0) {
-             this._activeCategoryId.set(res.data.categories[0].id);
+            this._activeCategoryId.set(res.data.categories[0].categoryId);
           }
         } else {
           this._error.set(res.error || 'Failed to load products');
@@ -100,10 +100,10 @@ export class NewOrderStore {
       if (existing) {
         return cart.map(i => i.id === existing.id ? { ...i, quantity: i.quantity + 1 } : i);
       }
-      return [...cart, { 
-        id: crypto.randomUUID(), 
-        product, 
-        quantity: 1 
+      return [...cart, {
+        id: crypto.randomUUID(),
+        product,
+        quantity: 1
       }];
     });
   }
@@ -146,5 +146,9 @@ export class NewOrderStore {
         this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Network error while submitting order' });
       }
     });
+  }
+
+  setSubmitting(status: boolean) {
+    this._isSubmitting.set(status);
   }
 }

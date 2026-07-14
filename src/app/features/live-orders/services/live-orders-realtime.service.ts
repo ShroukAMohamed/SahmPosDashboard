@@ -5,7 +5,7 @@ import { OrderStatus } from '../../../core/types/order-status.type';
 import { MockApiService } from '../../../core/mock-api/mock-api.service';
 import { OrderStatusUpdate } from '../../../core/models/order-status-update.interface';
 
-export type RealtimeEvent = 
+export type RealtimeEvent =
   | { type: 'ORDER_CREATED'; payload: Order }
   | { type: 'ORDER_STATUS_CHANGED'; payload: OrderStatusUpdate };
 
@@ -14,7 +14,7 @@ export type ConnectionState = 'CONNECTING' | 'CONNECTED' | 'DISCONNECTED' | 'ERR
 @Injectable({ providedIn: 'root' })
 export class LiveOrdersRealtimeService {
   private mockApi = inject(MockApiService);
-  
+
   private connectionStateSubject = new BehaviorSubject<ConnectionState>('DISCONNECTED');
   public connectionState$ = this.connectionStateSubject.asObservable();
 

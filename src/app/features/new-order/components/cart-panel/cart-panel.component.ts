@@ -46,9 +46,16 @@ export class CartPanelComponent {
       placedAt: new Date().toISOString()
     };
 
-    // Use LiveOrdersStore for optimistic update and offline queueing
-    this.liveOrdersStore.addOrder(newOrder);
-    this.store.clearCart();
-    this.router.navigate(['/live-orders']);
+    // Trigger loading spinner for UX
+    this.store.setSubmitting(true);
+
+    // Slight delay to show the spinner before optimistic navigation
+    setTimeout(() => {
+      // Use LiveOrdersStore for optimistic update and offline queueing
+      this.liveOrdersStore.addOrder(newOrder);
+      this.store.clearCart();
+      this.store.setSubmitting(false);
+      this.router.navigate(['/live-orders']);
+    }, 600);
   }
 }
