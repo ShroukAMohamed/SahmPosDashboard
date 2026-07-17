@@ -6,63 +6,63 @@
       <h1 class="text-white tracking-tight text-2xl font-bold leading-tight m-0">Kitchen Workload Monitor</h1>
       <p class="text-text-muted text-sm font-normal leading-normal m-0">Real-time station capacity and alerts</p>
     </div>
-    <app-sync-indicator [isSynced]="store.isSynced()"></app-sync-indicator>
   </div>
 
   <!-- Loading State -->
   @if (store.isLoading()) {
-    <main class="flex-1 overflow-x-auto p-6 bg-background h-full w-full">
-      <div class="flex gap-6 h-full w-full pb-4">
-        <div class="flex-1 h-full shrink-0"><app-panel-skeleton></app-panel-skeleton></div>
-        <div class="w-[20rem] h-full shrink-0"><app-panel-skeleton></app-panel-skeleton></div>
-      </div>
-    </main>
+  <main class="flex-1 overflow-x-auto p-6 bg-background h-full w-full">
+    <div class="flex gap-6 h-full w-full pb-4">
+      <div class="flex-1 h-full shrink-0"><app-panel-skeleton></app-panel-skeleton></div>
+      <div class="w-[20rem] h-full shrink-0"><app-panel-skeleton></app-panel-skeleton></div>
+    </div>
+  </main>
   }
 
   <!-- Error State -->
   @if (store.error()) {
-    <div class="absolute inset-0 z-40 flex flex-col items-center justify-center bg-background/90 text-center p-6">
-      <span class="material-symbols-outlined text-danger text-5xl mb-4">error</span>
-      <h3 class="text-white text-lg font-bold mb-2">Failed to load live data</h3>
-      <p class="text-text-muted mb-6">{{ store.error() }}</p>
-    </div>
+  <div class="absolute inset-0 z-40 flex flex-col items-center justify-center bg-background/90 text-center p-6">
+    <span class="material-symbols-outlined text-danger text-5xl mb-4">error</span>
+    <h3 class="text-white text-lg font-bold mb-2">Failed to load live data</h3>
+    <p class="text-text-muted mb-6">{{ store.error() }}</p>
+  </div>
   }
 
   <!-- Main Dashboard Content -->
   @if (!store.isLoading() && !store.error()) {
-    <main class="flex-1 overflow-y-auto p-6 relative">
-      <!-- Empty State -->
-      @if (store.stations().length === 0) {
-        <div class="absolute inset-0 flex flex-col items-center justify-center">
-          <span class="material-symbols-outlined text-text-muted text-6xl mb-4">restaurant_menu</span>
-          <h3 class="text-white text-xl font-bold">No Active Kitchen Tasks</h3>
-        </div>
-      }
+  <main class="flex-1 overflow-y-auto p-6 relative">
+    <!-- Empty State -->
+    @if (store.stations().length === 0) {
+    <div class="absolute inset-0 flex flex-col items-center justify-center">
+      <span class="material-symbols-outlined text-text-muted text-6xl mb-4">restaurant_menu</span>
+      <h3 class="text-white text-xl font-bold">No Active Kitchen Tasks</h3>
+    </div>
+    }
 
-      <div class="mx-auto w-full min-h-full grid grid-cols-1 lg:grid-cols-3 gap-6" [class.opacity-50]="store.stations().length === 0">
-        <!-- Left Column: Station Cards & Timeline (Spans 2 columns on lg screens) -->
-        <div class="lg:col-span-2 flex flex-col gap-6">
+    <div class="mx-auto w-full min-h-full grid grid-cols-1 lg:grid-cols-3 gap-6"
+      [class.opacity-50]="store.stations().length === 0">
+      <!-- Left Column: Station Cards & Timeline (Spans 2 columns on lg screens) -->
+      <div class="lg:col-span-2 flex flex-col gap-6">
 
-          <!-- Station Capacity Grid -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            @for (station of store.stations(); track station.id) {
-              <app-station-capacity [station]="station"></app-station-capacity>
-            }
-          </div>
-
-          <!-- Timeline Activity Chart / AI Insights -->
-          <app-ai-insights-grid [insights]="store.insights()"></app-ai-insights-grid>
-
+        <!-- Station Capacity Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          @for (station of store.stations(); track station.id) {
+          <app-station-capacity [station]="station"></app-station-capacity>
+          }
         </div>
 
-        <!-- Right Column: Active Alerts -->
-        <div class="lg:col-span-1 h-full">
-          <app-active-alerts [alerts]="store.alerts()" [count]="store.activeAlertsCount()"
-            (acknowledge)="store.acknowledgeAlert($event)">
-          </app-active-alerts>
-        </div>
+        <!-- Timeline Activity Chart / AI Insights -->
+        <app-ai-insights-grid [insights]="store.insights()"></app-ai-insights-grid>
 
       </div>
-    </main>
+
+      <!-- Right Column: Active Alerts -->
+      <div class="lg:col-span-1 h-full">
+        <app-active-alerts [alerts]="store.alerts()" [count]="store.activeAlertsCount()"
+          (acknowledge)="store.acknowledgeAlert($event)">
+        </app-active-alerts>
+      </div>
+
+    </div>
+  </main>
   }
 </div>
