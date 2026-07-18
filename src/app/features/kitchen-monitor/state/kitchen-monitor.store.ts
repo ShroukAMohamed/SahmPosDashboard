@@ -34,6 +34,14 @@ export class KitchenMonitorStore {
 
   // We can track acknowledged alerts manually
   private readonly _acknowledgedAlertIds = signal<Set<string>>(new Set());
+  private readonly _systemEvents = signal<KitchenEvent[]>([]);
+
+  constructor() {
+    this.kitchenService.getOperationalEvents().subscribe(event => {
+      // Prepend new events, keep only the last 5 to avoid bloating
+      this._systemEvents.update(events => [event, ...events].slice(0, 5));
+    });
+  }
 
   readonly isLoading = this.liveOrdersStore.isLoading;
   readonly error = this.liveOrdersStore.error;
@@ -175,6 +183,18 @@ export class KitchenMonitorStore {
         timeAgo: 'Just now',
         description: `Load steadily increasing. Currently at ${Math.round((s.currentLoad / s.maxCapacity) * 100)}% capacity.`,
         acknowledged: ackIds.has(aId)
+      });
+    });
+
+    const sysEvents = this._systemEvents();
+    sysEvents.forEach(evt => {
+      generatedAlerts.push({
+        id: evt.id,
+        type: evt.type === 'SYSTEM_NOTICE' ? 'primary' : 'danger',
+        title: evt.type === 'SYSTEM_NOTICE' ? 'System Notice' : 'Bottleneck Detected',
+        timeAgo: 'Just now',
+        description: evt.message || 'System event occurred',
+        acknowledged: ackIds.has(evt.id)
       });
     });
 
